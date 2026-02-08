@@ -1,9 +1,6 @@
-using NUnit.Framework;
-using UnityEngine;
-using System.Collections.Generic;
+﻿using UnityEngine;
 using System.Collections;
-using Unity.VisualScripting;
-using UnityEditor.Toolbars;
+
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -32,58 +29,80 @@ public class EnemySpawner : MonoBehaviour
     {
          while (true)
         {
-           SpawnWave();
+          StartCoroutine(SpawnRoutine());   
             yield return new WaitForSeconds(spawnInterval);
         }   
     }
 
-   public void SpawnWave()
+    //public void SpawnWave()
+    // {
+    //      Transform RandomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+    //      GameObject RandomEnemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+
+
+    //     MeshRenderer meshRend = RandomSpawnPoint.GetComponent<MeshRenderer>();
+
+
+
+    //     StartCoroutine(GLowEffect(meshRend));
+
+    //     StartCoroutine(WaitforTwosec());    
+
+
+    //     Instantiate(RandomEnemyPrefab, RandomSpawnPoint.position, Quaternion.identity);
+    //     StartCoroutine(WaitforTwosec());
+
+
+    //     meshRend.enabled = false;
+
+
+
+    // }
+
+    private IEnumerator SpawnRoutine()
     {
-         Transform RandomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-         GameObject RandomEnemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+        GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
 
+        MeshRenderer meshRend = spawnPoint.GetComponent<MeshRenderer>();
+        if (meshRend == null)
+            yield break;
 
-        MeshRenderer meshRend = RandomSpawnPoint.GetComponent<MeshRenderer>();
+     
         meshRend.enabled = true;
-      
 
-        StartCoroutine(GLowEffect(meshRend));   
-
-        meshRend.enabled = false;
-
-        Instantiate(RandomEnemyPrefab, RandomSpawnPoint.position, Quaternion.identity);
+       
+        yield return StartCoroutine(GlowEffect(meshRend));
 
         
-    }   
+        yield return new WaitForSeconds(0.2f);
 
-    private IEnumerator GLowEffect(MeshRenderer rend)
+        Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+
+        yield return new WaitForSeconds(0.3f);
+
+        meshRend.enabled = false;
+    }
+
+
+    private IEnumerator GlowEffect(MeshRenderer rend)
     {
-       
-        if (rend == null) { 
-            Debug.LogWarning("Spawn point does not have a Renderer component for glow effect.");
-           yield break ;
-        }
-        rend.enabled = true;
         float elapsedTime = 0f;
 
-        while ( elapsedTime < glowDuration)
+        while (elapsedTime < glowDuration)
         {
             float pulse = Mathf.PingPong(elapsedTime * pulseSpeed, 1f);
             pulse = Mathf.SmoothStep(0f, 1f, pulse);
 
-            Color emission = glowColor * pulse * glowIntensity; 
+            Color emission = glowColor * pulse * glowIntensity;
 
             mpb.SetColor("_EmissionColor", emission);
-            elapsedTime += Time.deltaTime;
+            rend.SetPropertyBlock(mpb);
 
+            elapsedTime += Time.deltaTime;
             yield return null;
         }
-       
-        
-        //mpb.SetColor("_EmissionColor", Color.black);
-        rend.SetPropertyBlock(mpb);
-     
-  
     }
+
 
 }
