@@ -11,7 +11,7 @@ public class EnemySpawner : MonoBehaviour
     private float spawnInterval = 3f;
 
     [Header("Glow Effect")]
-   
+                     
     [SerializeField] private Color glowColor = Color.blue;
     [SerializeField] private float glowIntensity = 2f;
     [SerializeField] private float pulseSpeed = 2f; 
@@ -30,34 +30,10 @@ public class EnemySpawner : MonoBehaviour
          while (true)
         {
           StartCoroutine(SpawnRoutine());   
-            yield return new WaitForSeconds(spawnInterval);
+            yield return new WaitForSeconds(spawnInterval);    
         }   
     }
 
-    //public void SpawnWave()
-    // {
-    //      Transform RandomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-    //      GameObject RandomEnemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
-
-
-    //     MeshRenderer meshRend = RandomSpawnPoint.GetComponent<MeshRenderer>();
-
-
-
-    //     StartCoroutine(GLowEffect(meshRend));
-
-    //     StartCoroutine(WaitforTwosec());    
-
-
-    //     Instantiate(RandomEnemyPrefab, RandomSpawnPoint.position, Quaternion.identity);
-    //     StartCoroutine(WaitforTwosec());
-
-
-    //     meshRend.enabled = false;
-
-
-
-    // }
 
     private IEnumerator SpawnRoutine()
     {
