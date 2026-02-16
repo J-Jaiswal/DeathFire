@@ -1,12 +1,14 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public enum MovementType
 {
     Straight,
     ZigZag,
-    Circle
+    Circle,
+    Static
 }   
 public class EnemyMovement : MonoBehaviour
 {
@@ -17,9 +19,12 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float zigzagFrequency = 3f;
     [SerializeField] private float zigzagAmplitude = 2f;
     [SerializeField] private float circleFrequency = 2f;
-    [SerializeField] private float circleRadius = 1f;    
+    [SerializeField] private float circleRadius = 1f;  
+
+    
 
 
+    
 
     void Update()
     {
@@ -29,6 +34,7 @@ public class EnemyMovement : MonoBehaviour
 
         switch (movementType)
         {
+
             case MovementType.Straight:
                 break;
 
@@ -48,8 +54,32 @@ public class EnemyMovement : MonoBehaviour
         }
 
         Vector3 finalDir = (toPlayer + offset).normalized;
+  
 
-        transform.position +=  moveSpeed * finalDir * Time.deltaTime;
+
+        if ( movementType != MovementType.Static)
+        {
+            transform.position +=  moveSpeed * finalDir * Time.deltaTime;
+
+        }
+
+       ProvideDanage();
     }
 
+    void ProvideDanage()
+    {
+        if ( Vector3.Distance(transform.position, player.position) < 1f)
+        {
+            Debug.Log("Enemy provided damage to player and destroyed!");  
+            Destroy( this.gameObject);
+            // Implement damage logic here, e.g.:
+            // player.GetComponent<PlayerHealth>().TakeDamage(damageAmount);
+        }   
+    }
+
+
+    void HealthBar()
+    {
+        
+    }
 }
