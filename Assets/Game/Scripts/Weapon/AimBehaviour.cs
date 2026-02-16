@@ -9,7 +9,7 @@ public class AimBehaviour : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private float sensitivity = 10f;
-    [SerializeField] private float planeDistance = 15f;
+    [SerializeField] private float planeDistance = 25f;
 
     [Header("Clamp")]
     [SerializeField] private Vector2 clampX = new Vector2(-6f, 6f);

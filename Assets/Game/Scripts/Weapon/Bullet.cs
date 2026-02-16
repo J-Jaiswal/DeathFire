@@ -8,9 +8,6 @@ public class Bullet : MonoBehaviour
     [SerializeField] private float speed = 100f;
     [SerializeField] private float lifeTime = 3f;
 
-    [Header("Visuals")]
-    [SerializeField] private float meshVisibleTime = 0.02f; 
-
     private Rigidbody bulletRB;
     private Vector3 bulletDir;
 
@@ -25,34 +22,28 @@ public class Bullet : MonoBehaviour
 
         aimController = FindAnyObjectByType<AimBehaviour>();
         bulletDir = aimController.GetDirection().normalized;
-
-        // Initial state
-        trailRenderer.emitting = false;
-        meshRenderer.enabled = false;
     }
 
     private void Start()
     {
         bulletRB.linearVelocity = bulletDir * speed;
-
-        StartCoroutine(VisualRoutine());
-
-        Destroy(gameObject, lifeTime);
     }
 
-    private IEnumerator VisualRoutine()
+    private void OnTriggerEnter(Collider other)
     {
-        // Small delay so spawn doesn't look broken
-        yield return new WaitForSeconds(meshVisibleTime);
+       Vector3 hitpoint = other.ClosestPoint(transform.position);   
+        if ( other.CompareTag("Enemy"))
+        {
+            EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(40 ,hitpoint );
+                Debug.Log("Enemy took damage: " + 40  + other.gameObject.name);
+            }
+        Destroy(gameObject);    
+        }       
 
-        
-        trailRenderer.emitting = true;
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        // Optional: impact VFX here
-
-        Destroy(gameObject);
-    }
+  
 }

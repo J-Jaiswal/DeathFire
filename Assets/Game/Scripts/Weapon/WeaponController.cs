@@ -3,20 +3,19 @@ using UnityEngine;
 public class WeaponController : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Transform gunRoot;     // Parent of arms + gun
+    [SerializeField] private Transform gunRoot;     
     [SerializeField] private Transform muzzle;
-    [SerializeField] private Transform aim;         // World-space aim target
+    [SerializeField] private Transform aim;         
 
     [Header("Rotation Settings")]
-    [SerializeField] private float rotationStrength = 20f; // small values (2–6)
-    [SerializeField] private Vector2 maxRotation = new Vector2(20f, 5f); // yaw, pitch
-
+    [SerializeField] private float rotationStrength = 20f; 
+    [SerializeField] private Vector2 maxRotation = new Vector2(20f, 5f); 
     [Header("Pitch Position Settings")]
     [SerializeField] private float pitchPositionStrength = 0.0025f;
     [SerializeField] private float pitchLerpSpeed = 8f;
-    [SerializeField] private float maxPitchOffset = 0.015f; // safety clamp
+    [SerializeField] private float maxPitchOffset = 0.015f; 
     [Header("Visual Pitch Pivot")]
-    [SerializeField] private Transform gunVisualPivot; // child mesh or pivot
+    [SerializeField] private Transform gunVisualPivot; 
    
 
 
@@ -25,10 +24,10 @@ public class WeaponController : MonoBehaviour
     private Quaternion defaultVisualRotation;
 
 
-    void Awake()
+    void Start()
     {
         defaultLocalRotation = gunRoot.localRotation;
-        defaultVisualRotation = gunVisualPivot.localRotation; // pitch
+        defaultVisualRotation = gunVisualPivot.localRotation; 
      }
 
     void Update()
@@ -77,16 +76,5 @@ public class WeaponController : MonoBehaviour
             Time.deltaTime * rotationStrength
         );
     }
-
-
-    void Shoot()
-    {
-
-    }
-
-
-
-
-
 
 }
