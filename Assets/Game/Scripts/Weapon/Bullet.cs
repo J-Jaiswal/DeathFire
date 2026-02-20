@@ -10,16 +10,11 @@ public class Bullet : MonoBehaviour
 
     private Rigidbody bulletRB;
     private Vector3 bulletDir;
-
-    private MeshRenderer meshRenderer;
-    private TrailRenderer trailRenderer;
     AimBehaviour aimController;
     private void Awake()
     {
         bulletRB = GetComponent<Rigidbody>();
-        meshRenderer = GetComponent<MeshRenderer>();
-        trailRenderer = GetComponent<TrailRenderer>();
-
+      
         aimController = FindAnyObjectByType<AimBehaviour>();
         bulletDir = aimController.GetDirection().normalized;
     }
@@ -27,6 +22,7 @@ public class Bullet : MonoBehaviour
     private void Start()
     {
         bulletRB.linearVelocity = bulletDir * speed;
+        Death( lifeTime);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -45,5 +41,9 @@ public class Bullet : MonoBehaviour
 
     }
 
-  
+   void Death ( float duration)
+    {
+        Destroy(gameObject , duration);
+    }   
+
 }
