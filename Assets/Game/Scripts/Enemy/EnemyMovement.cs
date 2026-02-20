@@ -2,20 +2,16 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-
-public enum MovementType
-{
-    Straight,
-    ZigZag,
-    Circle,
-    Static
-}   
+  
 public class EnemyMovement : MonoBehaviour
 {
+    
     [SerializeField] Transform player;
     public MovementType movementType;
-    [SerializeField] private float moveSpeed = 2f;
-  
+
+
+    private float moveSpeed;
+
     [SerializeField] private float zigzagFrequency = 3f;
     [SerializeField] private float zigzagAmplitude = 2f;
     [SerializeField] private float circleFrequency = 2f;
@@ -23,11 +19,17 @@ public class EnemyMovement : MonoBehaviour
 
     
 
+    public void Initialize (MovementType type, float Speed)
+    {
+       movementType = type;
+        
+         moveSpeed = Speed; 
+    }   
 
-    
 
     void Update()
     {
+        if (player == null) return; 
         Vector3 toPlayer = (player.position - transform.position).normalized;
 
         Vector3 offset = Vector3.zero;
@@ -78,8 +80,5 @@ public class EnemyMovement : MonoBehaviour
     }
 
 
-    void HealthBar()
-    {
-        
-    }
+
 }

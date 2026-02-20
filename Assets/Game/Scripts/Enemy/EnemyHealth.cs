@@ -3,26 +3,30 @@ using UnityEngine.UI;
 
 public class EnemyHealth : MonoBehaviour
 {
-    [SerializeField] private int maxHealth = 100;
-    [SerializeField] private int currentHealth;
-    [SerializeField] private int damageAmount = 40;
-    [SerializeField] Slider healthBar;
+
+    private int maxHealth;
+    private int currentHealth;
+    private int damageAmount;
+    [SerializeField] private Slider healthBar;
     [SerializeField] Transform target;
 
     [SerializeField] ParticleSystem hitVfx;
     [SerializeField] Image healthBarImage;
+    [SerializeField] GameObject deathFVX;
     public Gradient healthGradient;
-    void Start()
-    {
-        healthBar = GetComponentInChildren<Slider>();   
-        healthBarImage = healthBar.GetComponentInChildren<Image>();
-        healthBar.maxValue = maxHealth;     
-        healthBar.value = maxHealth;
-        healthBarImage.color = healthGradient.Evaluate(1f); 
-        currentHealth = maxHealth;
-    }
+  
 
-     
+    public void Initialize(int health, int damage)
+    {
+        maxHealth = health;
+        damageAmount = damage;
+        healthBar.maxValue = maxHealth;
+        healthBar.value = maxHealth;
+        healthBarImage.color = healthGradient.Evaluate(1f);
+        currentHealth = maxHealth;
+      
+    }   
+
     void HealthBarFace()
     {
         if (target != null)
@@ -43,7 +47,7 @@ public class EnemyHealth : MonoBehaviour
     {
         currentHealth -= damage;
         healthBar.value = currentHealth;
-        healthBarImage.color = healthGradient.Evaluate((float)currentHealth / 100); 
+        healthBarImage.color = healthGradient.Evaluate((float)currentHealth / maxHealth); 
         if (hitVfx != null)
         {
             hitVfx.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -57,6 +61,15 @@ public class EnemyHealth : MonoBehaviour
     
     void Die()
     {
+        if ( deathFVX != null)
+        {
+           Instantiate(deathFVX, transform.position, Quaternion.identity);
+           Destroy( deathFVX, 2f);
+        }
+
+        FindAnyObjectByType<WaveManager>().NotifyEnemyDeath();      
         Destroy(gameObject);
-    }   
+    }  
+    
+  
 }
