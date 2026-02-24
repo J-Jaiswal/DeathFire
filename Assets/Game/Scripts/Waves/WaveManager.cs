@@ -1,133 +1,107 @@
-using UnityEngine;
-using System.Collections.Generic;
+﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 
 
+[RequireComponent(typeof(WaveSpawner))]
 public class WaveManager : MonoBehaviour
 {
-
     [Header("Wave Settings")]
     [SerializeField] private List<WaveData> waves;
-    [SerializeField] Transform[] spawnPoints;
-    private int currentWaveIndex = 0;  
-    private WaveData currentWave;       
-    private float timeDelayNextWave = 5f;   
+    [SerializeField] private float delayBeforeFirstWave = 3f;
+    [SerializeField] private float delayBetweenWaves = 5f;
 
-    [Header("Glow Effect")]
+    [Header("UI")]
+    [SerializeField] private TextMeshProUGUI waveText;      
+    [SerializeField] private TextMeshProUGUI countdownText;  
 
-    [SerializeField] private Color glowColor = Color.blue;
-    [SerializeField] private float glowIntensity = 2f;
-    [SerializeField] private float pulseSpeed = 2f;
-    [SerializeField] private float glowDuration = 0.2f;
-    private MaterialPropertyBlock mpb;
-    bool waveCompleted = false; 
-    public int enemyAlive =  0;
-    private bool isSpawning = false;    
-    private bool waveInProgreess = false;
+    private WaveSpawner waveSpawner;
 
-    [Header("Debug")]
+    private int currentWaveIndex = 0;
+    private int enemiesAlive = 0;
+    private bool isSpawning = false;
+    private bool waveInProgress = false;
 
-    [SerializeField] private TextMeshProUGUI waveUI;
-
+    private void Awake()
+    {
+        waveSpawner = GetComponent<WaveSpawner>();
+    }
 
     private void Start()
     {
-        mpb = new MaterialPropertyBlock();
-        StartCoroutine(SpawnNextWave());
+        StartCoroutine(RunWave(delayBeforeFirstWave));
     }
 
 
-    IEnumerator SpawnNextWave()
-    {
-       if ( currentWaveIndex >= waves.Count)
-        {
-            Debug.Log("No more waves to spawn!");
-            yield break;
-        }
-       yield return new WaitForSeconds(  timeDelayNextWave );
-        
-       currentWave = waves[currentWaveIndex];   
-        waveUI.text = $"Wave {currentWaveIndex + 1}";
-        waveInProgreess = true;
-       yield return StartCoroutine(SpawnWave());   
-
-        isSpawning = false;
-
-        
-
-       checkWaveCompletion();   
-       
-    }
-
-    IEnumerator SpawnWave()
-    {
-        enemyAlive = 0;
-        foreach (GameObject enemyPrefab in currentWave.enemies)
-        {
-            Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-
-            // spawn gate glow effect --->  
-            MeshRenderer meshRend = spawnPoint.GetComponent<MeshRenderer>();
-            meshRend.enabled = true;
-            yield return StartCoroutine(GlowEffect(meshRend));
-            yield return new WaitForSeconds(0.2f);
-            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
-            yield return new WaitForSeconds(0.3f);
-            meshRend.enabled = false;
-            // spawn gate glow effect --->  
-
-            enemyAlive++;
-            Debug.Log("Enemies Alive: " + enemyAlive);  
-            yield return new WaitForSeconds(currentWave.spawnInterval);
-        }
-    }   
-
-    private IEnumerator GlowEffect(MeshRenderer rend)
-    {
-        float elapsedTime = 0f;
-
-        while (elapsedTime < glowDuration)
-        {
-            float pulse = Mathf.PingPong(elapsedTime * pulseSpeed, 1f);
-            pulse = Mathf.SmoothStep(0f, 1f, pulse);
-
-            Color emission = glowColor * pulse * glowIntensity;
-
-            mpb.SetColor("_EmissionColor", emission);
-            rend.SetPropertyBlock(mpb);
-
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-    }
 
     public void NotifyEnemyDeath()
     {
-        enemyAlive--;
-        Debug.Log("Enemy defeated! Remaining: " + enemyAlive);  
-
-        checkWaveCompletion();
-     
+        enemiesAlive--;
+        CheckWaveCompletion();
     }
 
-    void checkWaveCompletion()
+  
+
+    private IEnumerator RunWave(float delay)
     {
-       if ( enemyAlive <= 0 && !isSpawning  && waveInProgreess)
+        if (currentWaveIndex >= waves.Count)
         {
-            Debug.Log("Wave completed!");
-            waveInProgreess = false;
-           
-            currentWaveIndex++; 
+            SetWaveText("ALL WAVES COMPLETE");
+            SetCountdownText("");
+            yield break;
+        }
 
-            StartCoroutine(SpawnNextWave());        
-        }       
+        // countdown before wave starts
+        yield return StartCoroutine(Countdown(delay));
+
+        // start wave
+        WaveData wave = waves[currentWaveIndex];
+        waveInProgress = true;
+        isSpawning = true;
+        enemiesAlive = 0;
+
+        SetWaveText($"WAVE {currentWaveIndex + 1}");
+        SetCountdownText("");
+
+        yield return StartCoroutine(waveSpawner.SpawnWave(wave, () => enemiesAlive++));
+
+        isSpawning = false;
+        CheckWaveCompletion(); // edge case: enemies died mid-spawn
     }
-    bool WaveCompleted ()
+
+    private IEnumerator Countdown(float seconds)
     {
-        waveCompleted = true;
-        return waveCompleted ;
-    }   
+        int remaining = Mathf.CeilToInt(seconds);
+        while (remaining > 0)
+        {
+            SetCountdownText(remaining > 0 ? $"Next wave in {remaining}..." : "GET READY!");
+            yield return new WaitForSeconds(1f);
+            remaining--;
+        }
+        SetCountdownText("GET READY!");
+        yield return new WaitForSeconds(0.5f);
+    }
 
+    private void CheckWaveCompletion()
+    {
+        if (enemiesAlive > 0 || isSpawning || !waveInProgress) return;
 
+        waveInProgress = false;
+        SetWaveText($"WAVE {currentWaveIndex + 1} CLEAR!");
+        currentWaveIndex++;
+        StartCoroutine(RunWave(delayBetweenWaves));
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────────
+
+    private void SetWaveText(string msg)
+    {
+        if (waveText != null) waveText.text = msg;
+    }
+
+    private void SetCountdownText(string msg)
+    {
+        if (countdownText != null) countdownText.text = msg;
+    }
 }
