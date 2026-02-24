@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c4872d1ce05eda408ad6d7c4b0ff817, type: 3}
+  m_Name: Wave6
+  m_EditorClassIdentifier: Assembly-CSharp::WaveData
+  waveName: No Mistakes
+  enemies:
+  - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
+  - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
+  - {fileID: 4982518431175953929, guid: 28aa9895f747e3e4187eb249c9ea105a, type: 3}
+  - {fileID: 4982518431175953929, guid: 8654610a2cacc71468a710327fa7e669, type: 3}
+  - {fileID: 4982518431175953929, guid: 28aa9895f747e3e4187eb249c9ea105a, type: 3}
+  - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
+  - {fileID: 4982518431175953929, guid: 28aa9895f747e3e4187eb249c9ea105a, type: 3}
+  - {fileID: 4982518431175953929, guid: 8654610a2cacc71468a710327fa7e669, type: 3}
+  spawnInterval: 3
+  fullAmmoRefil: 1
+  ammoRefilAmount: 12
+  healthDrop: 1
+  healthDropChance: 100

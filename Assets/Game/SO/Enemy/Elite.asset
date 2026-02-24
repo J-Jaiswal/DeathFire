@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Elite
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Elite
+  movementType: 0
   maxHealth: 150
-  moveSpeed: 2
+  moveSpeed: 2.5
   ScoreValue: 600
-  damageAmount: 40
+  damageToPlayer: 40

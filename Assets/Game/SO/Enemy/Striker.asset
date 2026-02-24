@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Striker
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Striker
+  movementType: 0
   maxHealth: 100
-  moveSpeed: 2
+  moveSpeed: 2.5
   ScoreValue: 150
-  damageAmount: 25
+  damageToPlayer: 25

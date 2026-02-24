@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0c4872d1ce05eda408ad6d7c4b0ff817, type: 3}
-  m_Name: Wave3
+  m_Name: Wave5
   m_EditorClassIdentifier: Assembly-CSharp::WaveData
-  waveName: Unstable Movements
+  waveName: Heavy Impact
   enemies:
+  - {fileID: 4082574744215486990, guid: df9e1671e3e605743bf5750041563300, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  - {fileID: 4982518431175953929, guid: 28aa9895f747e3e4187eb249c9ea105a, type: 3}
+  - {fileID: 4082574744215486990, guid: df9e1671e3e605743bf5750041563300, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  - {fileID: 4982518431175953929, guid: 28aa9895f747e3e4187eb249c9ea105a, type: 3}
-  - {fileID: 4982518431175953929, guid: 28aa9895f747e3e4187eb249c9ea105a, type: 3}
-  spawnInterval: 1
-  fullAmmoRefil: 0
-  ammoRefilAmount: 0
-  healthDrop: 0
-  healthDropChance: 0
+  spawnInterval: 3
+  fullAmmoRefil: 1
+  ammoRefilAmount: 12
+  healthDrop: 1
+  healthDropChance: 50

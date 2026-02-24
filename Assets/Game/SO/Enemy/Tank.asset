@@ -10,10 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbc7341ee368fd145a0858a3b62efe5a, type: 3}
-  m_Name: Waver
+  m_Name: Tank
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
-  enemyName: Waver
-  maxHealth: 100
-  moveSpeed: 2
-  ScoreValue: 200
-  damageAmount: 20
+  enemyName: Tank
+  movementType: 0
+  maxHealth: 200
+  moveSpeed: 1
+  ScoreValue: 400
+  damageToPlayer: 30
