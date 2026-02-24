@@ -7,7 +7,7 @@ public class EnemyMovement : MonoBehaviour
 {
     
     [SerializeField] Transform player;
-    public MovementType movementType;
+    private MovementType movementType;
 
 
     private float moveSpeed;
@@ -23,7 +23,7 @@ public class EnemyMovement : MonoBehaviour
     {
        movementType = type;
         
-         moveSpeed = Speed; 
+       moveSpeed = Speed; 
     }   
 
 

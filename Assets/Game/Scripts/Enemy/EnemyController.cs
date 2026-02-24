@@ -7,8 +7,6 @@ public class EnemyController : MonoBehaviour
     [Header("Data")]
     [SerializeField] private EnemyData enemyData;
 
-    [Header("References")]
-    [SerializeField] private Transform player;
 
     private EnemyMovement movement;
     private EnemyHealth health;

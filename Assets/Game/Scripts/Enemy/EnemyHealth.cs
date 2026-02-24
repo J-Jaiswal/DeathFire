@@ -14,7 +14,11 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] Image healthBarImage;
     [SerializeField] GameObject deathFVX;
     public Gradient healthGradient;
-  
+
+    //[SerializeField] private FloatingText floatingText;
+    //[SerializeField] private int scoreValue = 100;
+
+
 
     public void Initialize(int health, int damage)
     {
@@ -67,7 +71,8 @@ public class EnemyHealth : MonoBehaviour
            Destroy( deathFVX, 2f);
         }
 
-        FindAnyObjectByType<WaveManager>().NotifyEnemyDeath();      
+        FindAnyObjectByType<WaveManager>().NotifyEnemyDeath(); 
+        //floatingText.Show($"+{scoreValue}", Color.white);
         Destroy(gameObject);
     }  
     
