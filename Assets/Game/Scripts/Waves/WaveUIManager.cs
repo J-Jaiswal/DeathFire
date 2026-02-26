@@ -2,17 +2,13 @@
 using TMPro;
 using System.Collections;
 
-/// <summary>
-/// All wave-related UI in one place.
-/// WaveManager calls methods on this directly.
-/// </summary>
 public class WaveUIManager : MonoBehaviour
 {
     [Header("Wave Number HUD")]
-    [SerializeField] private TextMeshProUGUI waveNumberText;   // persistent top-left etc.
+    [SerializeField] private TextMeshProUGUI waveNumberText;
 
     [Header("Center Banner")]
-    [SerializeField] private GameObject bannerRoot;       // panel to show/hide
+    [SerializeField] private GameObject bannerRoot;
     [SerializeField] private TextMeshProUGUI bannerTitleText;
     [SerializeField] private TextMeshProUGUI bannerBodyText;
     [SerializeField] private float bannerDuration = 2.5f;
@@ -25,14 +21,24 @@ public class WaveUIManager : MonoBehaviour
 
     private void Start()
     {
+        // ✅ Log what's missing so you can fix Inspector assignments
+        if (waveNumberText == null) Debug.LogWarning("[WaveUIManager] ⚠️ waveNumberText is NOT assigned!");
+        if (bannerRoot == null) Debug.LogWarning("[WaveUIManager] ⚠️ bannerRoot is NOT assigned!");
+        if (bannerTitleText == null) Debug.LogWarning("[WaveUIManager] ⚠️ bannerTitleText is NOT assigned!");
+        if (bannerBodyText == null) Debug.LogWarning("[WaveUIManager] ⚠️ bannerBodyText is NOT assigned!");
+        if (countdownRoot == null) Debug.LogWarning("[WaveUIManager] ⚠️ countdownRoot is NOT assigned!");
+        if (countdownText == null) Debug.LogWarning("[WaveUIManager] ⚠️ countdownText is NOT assigned!");
+
         bannerRoot?.SetActive(false);
         countdownRoot?.SetActive(false);
-    }
 
-    // ── Called by WaveManager ─────────────────────────────────────────────────
+        Debug.Log("[WaveUIManager] ✅ Start complete.");
+    }
 
     public void ShowWaveStarted(int waveNumber)
     {
+        Debug.Log($"[WaveUIManager] 📢 ShowWaveStarted() Wave: {waveNumber}");
+
         if (waveNumberText != null)
             waveNumberText.text = $"WAVE {waveNumber}";
 
@@ -42,45 +48,57 @@ public class WaveUIManager : MonoBehaviour
 
     public void ShowWaveCleared(int waveNumber)
     {
+        Debug.Log($"[WaveUIManager] 📢 ShowWaveCleared() Wave: {waveNumber}");
         ShowBanner($"WAVE {waveNumber} CLEAR", "Prepare yourself...", Color.green);
     }
 
     public void ShowAllWavesCleared()
     {
+        Debug.Log("[WaveUIManager] 🏆 ShowAllWavesCleared()");
         ShowBanner("VICTORY", "All waves cleared!", Color.cyan);
         HideCountdown();
     }
 
     public void ShowCountdown(int secondsRemaining)
     {
-        if (countdownRoot == null) return;
+        Debug.Log($"[WaveUIManager] ⏱️ ShowCountdown(): {secondsRemaining}");
+
+        if (countdownRoot == null)
+        {
+            Debug.LogWarning("[WaveUIManager] ⚠️ ShowCountdown() skipped — countdownRoot is null!");
+            return;
+        }
 
         countdownRoot.SetActive(true);
 
         if (countdownText != null)
             countdownText.text = secondsRemaining > 0
-                ? $"Next wave in  {secondsRemaining}..."
+                ? $"Next wave in {secondsRemaining}..."
                 : "GET READY!";
     }
 
     public void HideCountdown()
     {
+        Debug.Log("[WaveUIManager] 🙈 HideCountdown()");
         countdownRoot?.SetActive(false);
     }
 
-    // ── Internal ──────────────────────────────────────────────────────────────
-
     private void ShowBanner(string title, string body, Color color)
     {
-        if (bannerRoot == null) return;
+        if (bannerRoot == null)
+        {
+            Debug.LogWarning($"[WaveUIManager] ⚠️ ShowBanner() skipped — bannerRoot is null! Title was: '{title}'");
+            return;
+        }
 
-        // Cancel previous banner if still showing
         if (bannerCoroutine != null) StopCoroutine(bannerCoroutine);
         bannerCoroutine = StartCoroutine(BannerRoutine(title, body, color));
     }
 
     private IEnumerator BannerRoutine(string title, string body, Color color)
     {
+        Debug.Log($"[WaveUIManager] 🎬 BannerRoutine started | Title: '{title}' | Body: '{body}'");
+
         bannerRoot.SetActive(true);
 
         if (bannerTitleText != null) { bannerTitleText.text = title; bannerTitleText.color = color; }
@@ -89,5 +107,6 @@ public class WaveUIManager : MonoBehaviour
         yield return new WaitForSeconds(bannerDuration);
 
         bannerRoot.SetActive(false);
+        Debug.Log($"[WaveUIManager] 🎬 BannerRoutine ended | '{title}' hidden.");
     }
 }

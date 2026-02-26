@@ -1,7 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
-
 
 public class WaveSpawner : MonoBehaviour
 {
@@ -21,13 +19,28 @@ public class WaveSpawner : MonoBehaviour
         mpb = new MaterialPropertyBlock();
     }
 
-  
+    /// <summary>
+    /// Called before first wave only — builds the initial wave queue during countdown.
+    /// </summary>
+    public void PrepareQueue(WaveData wave)
+    {
+        Debug.Log($"[WaveSpawner] 🔥 PrepareQueue() for: <color=white>{wave.waveName}</color> | Enemies: {wave.enemies.Length}");
+        EnemyPool.Instance.BuildWaveQueue(wave.enemies);
+        EnemyPool.Instance.LogPoolState();
+    }
+
     public IEnumerator SpawnWave(WaveData wave, System.Action onEnemySpawned)
     {
-        foreach (GameObject enemyPrefab in wave.enemies)
+        Debug.Log($"[WaveSpawner] 🚀 SpawnWave() | <color=white>{wave.waveName}</color> | Enemies: <color=yellow>{wave.enemies.Length}</color>");
+
+        int index = 0;
+        while (EnemyPool.Instance.QueueCount > 0)
         {
+            index++;
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             MeshRenderer meshRend = spawnPoint.GetComponent<MeshRenderer>();
+
+            Debug.Log($"[WaveSpawner] 👾 Spawning {index}/{wave.enemies.Length} at {spawnPoint.name}");
 
             if (meshRend != null)
             {
@@ -36,7 +49,7 @@ public class WaveSpawner : MonoBehaviour
                 yield return new WaitForSeconds(0.2f);
             }
 
-            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+            EnemyPool.Instance.GetNext(spawnPoint.position, Quaternion.identity);
             onEnemySpawned?.Invoke();
 
             if (meshRend != null)
@@ -47,6 +60,8 @@ public class WaveSpawner : MonoBehaviour
 
             yield return new WaitForSeconds(wave.spawnInterval);
         }
+
+        Debug.Log($"[WaveSpawner] 🏁 All enemies spawned for: <color=white>{wave.waveName}</color>");
     }
 
     private IEnumerator GlowEffect(MeshRenderer rend)
@@ -55,14 +70,11 @@ public class WaveSpawner : MonoBehaviour
         while (elapsed < glowDuration)
         {
             float pulse = Mathf.SmoothStep(0f, 1f, Mathf.PingPong(elapsed * pulseSpeed, 1f));
-            Color emission = glowColor * pulse * glowIntensity;
-            mpb.SetColor("_EmissionColor", emission);
+            mpb.SetColor("_EmissionColor", glowColor * pulse * glowIntensity);
             rend.SetPropertyBlock(mpb);
             elapsed += Time.deltaTime;
             yield return null;
         }
-
-        // reset emission when done
         mpb.SetColor("_EmissionColor", Color.black);
         rend.SetPropertyBlock(mpb);
     }
