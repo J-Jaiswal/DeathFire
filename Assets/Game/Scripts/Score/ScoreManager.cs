@@ -12,7 +12,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
 
     [Header("References")]
-    [SerializeField] private FloatingText floatingText; // replaced FloatingTextPool
+    [SerializeField] private FloatingText floatingText;
 
     private int totalScore = 0;
 
@@ -23,16 +23,27 @@ public class ScoreManager : MonoBehaviour
         if (isHeadshot)
         {
             earned += headshotBonus;
-            floatingText?.Show("HEADSHOT!", Color.red);
+
+            // Prepare the headshot label and trigger via bool
+            floatingText?.Prepare("HEADSHOT!", Color.red);
+            if (floatingText != null) floatingText.ShowText = true;
+        }
+        else
+        {
+            // Prepare the score label and trigger via bool
+            floatingText?.Prepare($"+{earned}", Color.white);
+            if (floatingText != null) floatingText.ShowText = true;
         }
 
         AddScore(earned);
-        floatingText?.Show($"+{earned}", Color.white);
     }
 
     public void ReportWaveCompleted()
     {
         AddScore(waveCompletedBonus);
+
+        floatingText?.Prepare($"+{waveCompletedBonus} WAVE CLEAR!", Color.yellow);
+        if (floatingText != null) floatingText.ShowText = true;
     }
 
     private void AddScore(int amount)
