@@ -1,9 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class EnemyHealth : MonoBehaviour
 {
-
     private int maxHealth;
     private int currentHealth;
     private int damageAmount;
@@ -15,10 +14,19 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] GameObject deathFVX;
     public Gradient healthGradient;
 
-    //[SerializeField] private FloatingText floatingText;
-    //[SerializeField] private int scoreValue = 100;
+    [Header("References")]
+    private ScoreManager scoreManager;
+    //private WaveManager waveManager;  // FIX 4: Cache instead of FindAnyObjectByType every death
 
+    [Header("Settings")]
+    [SerializeField]
+    private bool canBeHeadshot = true;
 
+    private void Awake()
+    {
+        scoreManager = FindAnyObjectByType<ScoreManager>();
+        //waveManager = FindAnyObjectByType<WaveManager>();  // FIX 4: Cache on Awake
+    }
 
     public void Initialize(int health, int damage)
     {
@@ -28,8 +36,7 @@ public class EnemyHealth : MonoBehaviour
         healthBar.value = maxHealth;
         healthBarImage.color = healthGradient.Evaluate(1f);
         currentHealth = maxHealth;
-      
-    }   
+    }
 
     void HealthBarFace()
     {
@@ -39,19 +46,19 @@ public class EnemyHealth : MonoBehaviour
             Quaternion lookRotation = Quaternion.LookRotation(direction);
             healthBar.transform.rotation = lookRotation;
         }
-    }   
+    }
+
     void Update()
     {
         HealthBarFace();
     }
 
-
-
-    public void TakeDamage(int damage , Vector3 hitpoint)
+    public void TakeDamage(int damage, Vector3 hitpoint, bool headshot = false)
     {
+        bool actualHeadshot = headshot && canBeHeadshot;
         currentHealth -= damage;
         healthBar.value = currentHealth;
-        healthBarImage.color = healthGradient.Evaluate((float)currentHealth / maxHealth); 
+        healthBarImage.color = healthGradient.Evaluate((float)currentHealth / maxHealth);
         if (hitVfx != null)
         {
             hitVfx.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -59,22 +66,25 @@ public class EnemyHealth : MonoBehaviour
         }
         if (currentHealth <= 0)
         {
-            Die();
+            Die(actualHeadshot);
         }
-    }  
-    
-    void Die()
+    }
+
+    void Die(bool isHeadshot)
     {
-        if ( deathFVX != null)
+        if (deathFVX != null)
         {
-           Instantiate(deathFVX, transform.position, Quaternion.identity);
-           Destroy( deathFVX, 2f);
+            // FIX 3: Capture the clone returned by Instantiate and destroy THAT,
+            // not deathFVX itself (which is the serialized prefab reference).
+            GameObject clone = Instantiate(deathFVX, transform.position, Quaternion.identity);
+            Destroy(clone, 2f);
         }
 
-        FindAnyObjectByType<WaveManager>().NotifyEnemyDeath(); 
-        //floatingText.Show($"+{scoreValue}", Color.white);
-        Destroy(gameObject);
-    }  
+        //waveManager.NotifyEnemyDeath();  // FIX 4: Use cached reference
+        scoreManager.ReportKill(isHeadshot);
     
-  
+        Debug.Log($"[Enemy] 🔄 {gameObject.name} calling EnemyPool.Return()...");
+        EnemyPool.Instance.Return(gameObject);
+        //Destroy(gameObject);
+    }
 }

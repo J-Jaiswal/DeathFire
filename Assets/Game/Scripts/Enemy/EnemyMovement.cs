@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,14 +17,20 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float circleFrequency = 2f;
     [SerializeField] private float circleRadius = 1f;  
 
-    
+    //private WaveManager waveManager;  // FIX 4: Cache instead of FindAnyObjectByType every frame
+
+
 
     public void Initialize (MovementType type, float Speed)
     {
        movementType = type;
         
        moveSpeed = Speed; 
-    }   
+    }
+    private void Awake()
+    {
+        //waveManager = FindAnyObjectByType<WaveManager>(); // Cache reference to WaveManager
+    }
 
 
     void Update()
@@ -72,10 +78,11 @@ public class EnemyMovement : MonoBehaviour
     {
         if ( Vector3.Distance(transform.position, player.position) < 1f)
         {
-            Debug.Log("Enemy provided damage to player and destroyed!");  
-            Destroy( this.gameObject);
-            // Implement damage logic here, e.g.:
-            // player.GetComponent<PlayerHealth>().TakeDamage(damageAmount);
+
+            //waveManager.NotifyEnemyDeath();  
+            Debug.Log("Enemy provided damage to player and destroyed!");
+            Debug.Log($"[Enemy] 🔄 {gameObject.name} calling EnemyPool.Return()...");
+            EnemyPool.Instance.Return(gameObject);
         }   
     }
 
