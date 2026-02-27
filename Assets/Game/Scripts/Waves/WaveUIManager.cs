@@ -4,109 +4,122 @@ using System.Collections;
 
 public class WaveUIManager : MonoBehaviour
 {
-    [Header("Wave Number HUD")]
-    [SerializeField] private TextMeshProUGUI waveNumberText;
+    [Header("Two UI Texts")]
+    [SerializeField] private TextMeshProUGUI primaryText;   // wave label — stays during wave
+    [SerializeField] private TextMeshProUGUI secondaryText; // big text: numbers, CLEARED!, GO!
 
-    [Header("Center Banner")]
-    [SerializeField] private GameObject bannerRoot;
-    [SerializeField] private TextMeshProUGUI bannerTitleText;
-    [SerializeField] private TextMeshProUGUI bannerBodyText;
-    [SerializeField] private float bannerDuration = 2.5f;
-
-    [Header("Countdown")]
-    [SerializeField] private GameObject countdownRoot;
-    [SerializeField] private TextMeshProUGUI countdownText;
-
-    private Coroutine bannerCoroutine;
+    private Coroutine primaryCoroutine;
+    private Coroutine secondaryCoroutine;
 
     private void Start()
     {
-        // ✅ Log what's missing so you can fix Inspector assignments
-        if (waveNumberText == null) Debug.LogWarning("[WaveUIManager] ⚠️ waveNumberText is NOT assigned!");
-        if (bannerRoot == null) Debug.LogWarning("[WaveUIManager] ⚠️ bannerRoot is NOT assigned!");
-        if (bannerTitleText == null) Debug.LogWarning("[WaveUIManager] ⚠️ bannerTitleText is NOT assigned!");
-        if (bannerBodyText == null) Debug.LogWarning("[WaveUIManager] ⚠️ bannerBodyText is NOT assigned!");
-        if (countdownRoot == null) Debug.LogWarning("[WaveUIManager] ⚠️ countdownRoot is NOT assigned!");
-        if (countdownText == null) Debug.LogWarning("[WaveUIManager] ⚠️ countdownText is NOT assigned!");
-
-        bannerRoot?.SetActive(false);
-        countdownRoot?.SetActive(false);
-
-        Debug.Log("[WaveUIManager] ✅ Start complete.");
+        if (primaryText == null) Debug.LogWarning("[WaveUIManager]  primaryText not assigned!");
+        if (secondaryText == null) Debug.LogWarning("[WaveUIManager]  secondaryText not assigned!");
+        ClearAll();
     }
 
-    public void ShowWaveStarted(int waveNumber)
+   
+
+    public void ShowPrimary(string message, Color color, float duration = 0f)
     {
-        Debug.Log($"[WaveUIManager] 📢 ShowWaveStarted() Wave: {waveNumber}");
+        if (primaryText == null) return;
+        if (primaryCoroutine != null) StopCoroutine(primaryCoroutine);
 
-        if (waveNumberText != null)
-            waveNumberText.text = $"WAVE {waveNumber}";
+        primaryText.text = message;
+        primaryText.color = color;
+        primaryText.gameObject.SetActive(true);
 
-        HideCountdown();
-        ShowBanner($"WAVE {waveNumber}", "SURVIVE!", Color.yellow);
+        if (duration > 0f)
+            primaryCoroutine = StartCoroutine(HidePrimaryAfter(duration));
     }
 
-    public void ShowWaveCleared(int waveNumber)
+    public void HidePrimary()
     {
-        Debug.Log($"[WaveUIManager] 📢 ShowWaveCleared() Wave: {waveNumber}");
-        ShowBanner($"WAVE {waveNumber} CLEAR", "Prepare yourself...", Color.green);
+        if (primaryCoroutine != null) { StopCoroutine(primaryCoroutine); primaryCoroutine = null; }
+        if (primaryText != null) primaryText.gameObject.SetActive(false);
+    }
+   
+    private IEnumerator HidePrimaryAfter(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (primaryText != null) primaryText.gameObject.SetActive(false);
     }
 
-    public void ShowAllWavesCleared()
+    
+
+    public void ShowSecondary(string message, Color color, float duration = 0f)
     {
-        Debug.Log("[WaveUIManager] 🏆 ShowAllWavesCleared()");
-        ShowBanner("VICTORY", "All waves cleared!", Color.cyan);
-        HideCountdown();
-    }
+        if (secondaryText == null) return;
+        if (secondaryCoroutine != null) StopCoroutine(secondaryCoroutine);
 
-    public void ShowCountdown(int secondsRemaining)
-    {
-        Debug.Log($"[WaveUIManager] ⏱️ ShowCountdown(): {secondsRemaining}");
+        secondaryText.text = message;
+        secondaryText.color = color;
+        secondaryText.gameObject.SetActive(true);
 
-        if (countdownRoot == null)
-        {
-            Debug.LogWarning("[WaveUIManager] ⚠️ ShowCountdown() skipped — countdownRoot is null!");
-            return;
-        }
-
-        countdownRoot.SetActive(true);
-
-        if (countdownText != null)
-            countdownText.text = secondsRemaining > 0
-                ? $"Next wave in {secondsRemaining}..."
-                : "GET READY!";
+        if (duration > 0f)
+            secondaryCoroutine = StartCoroutine(HideSecondaryAfter(duration));
     }
 
     public void HideCountdown()
     {
-        Debug.Log("[WaveUIManager] 🙈 HideCountdown()");
-        countdownRoot?.SetActive(false);
+        if (secondaryCoroutine != null) { StopCoroutine(secondaryCoroutine); secondaryCoroutine = null; }
+        if (secondaryText != null) secondaryText.gameObject.SetActive(false);
     }
 
-    private void ShowBanner(string title, string body, Color color)
+    private IEnumerator HideSecondaryAfter(float delay)
     {
-        if (bannerRoot == null)
-        {
-            Debug.LogWarning($"[WaveUIManager] ⚠️ ShowBanner() skipped — bannerRoot is null! Title was: '{title}'");
-            return;
-        }
-
-        if (bannerCoroutine != null) StopCoroutine(bannerCoroutine);
-        bannerCoroutine = StartCoroutine(BannerRoutine(title, body, color));
+        yield return new WaitForSeconds(delay);
+        if (secondaryText != null) secondaryText.gameObject.SetActive(false);
     }
 
-    private IEnumerator BannerRoutine(string title, string body, Color color)
+    // ─── Convenience wrappers ─────────────────────────────────────────────────
+
+    
+    public void ShowCountdown(int secondsRemaining, int waveNumber)
     {
-        Debug.Log($"[WaveUIManager] 🎬 BannerRoutine started | Title: '{title}' | Body: '{body}'");
+        ShowPrimary(
+            secondsRemaining > 0 ? $"Wave {waveNumber} starts In " : "",
+            Color.white
+        );
+        ShowSecondary(
+            secondsRemaining > 0 ? secondsRemaining.ToString() : "Get Ready!",
+            secondsRemaining > 0 ? Color.white : Color.yellow
+        );
+    }
 
-        bannerRoot.SetActive(true);
+    // Wave is now live — primary stays visible the whole wave, secondary hides
+    public void ShowWaveStarted(int waveNumber)
+    {
+        HideCountdown();
+        ShowPrimary($"Wave {waveNumber}", Color.yellow);
+    }
 
-        if (bannerTitleText != null) { bannerTitleText.text = title; bannerTitleText.color = color; }
-        if (bannerBodyText != null) { bannerBodyText.text = body; bannerBodyText.color = color; }
+    // Wave cleared — primary keeps showing wave number, secondary flashes CLEARED! for 2s
+    // WaveManager should wait for this 2s before starting the next countdown
+    public void ShowWaveCleared(int waveNumber)
+    {
+        ShowPrimary($"Wave {waveNumber}", Color.yellow);
+        ShowSecondary("CLEARED!", Color.green, 2f);
+    }
 
-        yield return new WaitForSeconds(bannerDuration);
+    public void ShowVictory()
+    {
+        HideCountdown();
+        ShowPrimary("Victory!\nAll waves cleared!", Color.cyan);
+        ShowSecondary("CLEARED!", Color.green, 2f);
+    }
 
-        bannerRoot.SetActive(false);
-        Debug.Log($"[WaveUIManager] 🎬 BannerRoutine ended | '{title}' hidden.");
+    public void ShowGameOver(string reason = "")
+    {
+        HideCountdown();
+        string msg = string.IsNullOrEmpty(reason) ? "Game Over" : $"Game Over\n{reason}";
+        ShowPrimary(msg, Color.red);
+        ShowSecondary("OVER", Color.red, 2f);
+    }
+
+    public void ClearAll()
+    {
+        HidePrimary();
+        HideCountdown();
     }
 }

@@ -9,8 +9,8 @@ public class WaveData : ScriptableObject
     public string waveName;
     public GameObject[] enemies;  
     public float spawnInterval = 1f;
-    public bool fullAmmoRefil;
-    public int ammoRefilAmount; 
+    public bool fullAmmoRefill;
+    public int ammoRefillAmount; 
     public bool healthDrop;
     public float healthDropChance;  
 

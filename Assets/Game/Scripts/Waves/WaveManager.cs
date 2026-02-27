@@ -7,7 +7,7 @@ public class WaveManager : MonoBehaviour
 {
     [Header("Wave Settings")]
     [SerializeField] private List<WaveData> waves;
-    [SerializeField] private float delayBeforeFirstWave = 3f;
+    [SerializeField] private float delayBeforeFirstWave = 5f;
     [SerializeField] private float delayBetweenWaves = 5f;
 
     [Header("UI")]
@@ -23,136 +23,116 @@ public class WaveManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Debug.LogWarning("[WaveManager] ⚠️ Multiple instances detected! Destroying duplicate.");
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         waveSpawner = GetComponent<WaveSpawner>();
-        if (waveUI == null) Debug.LogWarning("[WaveManager] ⚠️ WaveUIManager is NOT assigned in Inspector!");
+        if (waveUI == null) Debug.LogWarning("[WaveManager] ⚠️ WaveUIManager not assigned!");
     }
 
     private void Start()
     {
-        Debug.Log($"[WaveManager] 🎮 Start | Waves: {waves.Count} | First wave delay: {delayBeforeFirstWave}s");
         StartCoroutine(RunWave(delayBeforeFirstWave, isFirstWave: true));
     }
 
     public void NotifyEnemyDeath()
     {
         enemiesAlive--;
-        Debug.Log($"[WaveManager] 💀 Enemy died | Alive: <color=red>{enemiesAlive}</color> | Spawning: {isSpawning}");
+        Debug.Log($"[WaveManager] 💀 Enemy died | Alive: {enemiesAlive} | Spawning: {isSpawning}");
         CheckWaveCompletion();
     }
 
-    private IEnumerator RunWave(float delay, bool isFirstWave = false)
+    public void TriggerGameOver(string reason = "")
     {
+        StopAllCoroutines();
+        waveInProgress = false;
+        isSpawning = false;
+        waveUI?.ShowGameOver(reason);
+        Debug.Log($"[WaveManager] 💀 Game Over | {reason}");
+    }
+
+    private IEnumerator RunWave(float delay, bool isFirstWave = false, float clearedDelay = 0f)
+    {
+        if (clearedDelay > 0f)
+            yield return new WaitForSeconds(clearedDelay);
+
         if (currentWaveIndex >= waves.Count)
         {
-            Debug.Log("[WaveManager] 🏆 All waves complete!");
-            waveUI?.ShowAllWavesCleared();
+            waveUI?.ShowVictory();
             yield break;
         }
 
         WaveData wave = waves[currentWaveIndex];
-        Debug.Log($"[WaveManager] ▶️ RunWave() | Index: {currentWaveIndex} | Name: <color=white>{wave.waveName}</color>");
+        int waveNumber = currentWaveIndex + 1;
 
         if (isFirstWave)
-        {
-            // First wave: build queue then countdown
-            yield return StartCoroutine(Countdown(delay, wave));
-        }
+            yield return StartCoroutine(Countdown(delay, wave, waveNumber));
         else
-        {
-            // Between waves: build queue DURING countdown
-            yield return StartCoroutine(CountdownWithQueueBuild(delay, wave));
-        }
+            yield return StartCoroutine(CountdownWithQueueBuild(delay, wave, waveNumber));
 
         waveInProgress = true;
         isSpawning = true;
         enemiesAlive = 0;
 
-        Debug.Log($"[WaveManager] ⚔️ Wave <color=white>{wave.waveName}</color> STARTING");
-        waveUI?.ShowWaveStarted(currentWaveIndex + 1);
+        waveUI?.ShowWaveStarted(waveNumber);
 
-        yield return StartCoroutine(waveSpawner.SpawnWave(wave, () =>
-        {
-            enemiesAlive++;
-            Debug.Log($"[WaveManager] ➕ enemiesAlive: <color=yellow>{enemiesAlive}</color>");
-        }));
+        yield return StartCoroutine(waveSpawner.SpawnWave(wave, () => { enemiesAlive++; }));
 
         isSpawning = false;
-        Debug.Log($"[WaveManager] 🛑 Spawning done | enemiesAlive: {enemiesAlive}");
         CheckWaveCompletion();
     }
 
-    /// <summary>
-    /// First wave countdown — builds queue upfront before timer starts.
-    /// </summary>
-    private IEnumerator Countdown(float seconds, WaveData wave)
+    private IEnumerator Countdown(float seconds, WaveData wave, int waveNumber)
     {
         int remaining = Mathf.CeilToInt(seconds);
-        Debug.Log($"[WaveManager] ⏳ Countdown: {remaining}s");
-
-        // Build queue before countdown so first wave is always ready
         waveSpawner.PrepareQueue(wave);
 
         while (remaining > 0)
         {
-            Debug.Log($"[WaveManager] ⏱️ {remaining}...");
-            waveUI?.ShowCountdown(remaining);
+            waveUI?.ShowCountdown(remaining, waveNumber);
             yield return new WaitForSeconds(1f);
             remaining--;
         }
 
-        waveUI?.ShowCountdown(0);
-        yield return new WaitForSeconds(0.5f);
+        // "GET READY!" beat
+        waveUI?.ShowCountdown(0, waveNumber);
+        yield return new WaitForSeconds(0.6f);
+        waveUI?.HideCountdown();
     }
 
-    /// <summary>
-    /// Between waves: builds the next wave queue silently after first tick
-    /// so instantiation happens during downtime the player already waits through.
-    /// </summary>
-    private IEnumerator CountdownWithQueueBuild(float seconds, WaveData nextWave)
+    private IEnumerator CountdownWithQueueBuild(float seconds, WaveData nextWave, int waveNumber)
     {
         int remaining = Mathf.CeilToInt(seconds);
-        Debug.Log($"[WaveManager] ⏳ Countdown with queue build: {remaining}s");
 
-        // Show first tick, let wave-cleared UI settle
-        waveUI?.ShowCountdown(remaining);
+   
+        waveUI?.ShowCountdown(remaining, waveNumber);
         yield return new WaitForSeconds(1f);
         remaining--;
 
-        // ✅ Build ordered wave queue silently during downtime
-        Debug.Log("[WaveManager] 🔁 Building wave queue...");
         EnemyPool.Instance.BuildWaveQueue(nextWave.enemies);
         EnemyPool.Instance.LogPoolState();
-        Debug.Log("[WaveManager] ✅ Queue ready for next wave.");
 
         while (remaining > 0)
         {
-            Debug.Log($"[WaveManager] ⏱️ {remaining}...");
-            waveUI?.ShowCountdown(remaining);
+            waveUI?.ShowCountdown(remaining, waveNumber);
             yield return new WaitForSeconds(1f);
             remaining--;
         }
 
-        waveUI?.ShowCountdown(0);
-        yield return new WaitForSeconds(0.5f);
+        
+        waveUI?.ShowCountdown(0, waveNumber);
+        yield return new WaitForSeconds(0.6f);
+        waveUI?.HideCountdown();
     }
 
     private void CheckWaveCompletion()
     {
-        Debug.Log($"[WaveManager] 🔍 Check | alive:{enemiesAlive} spawning:{isSpawning} inProgress:{waveInProgress}");
         if (enemiesAlive > 0 || isSpawning || !waveInProgress) return;
 
         waveInProgress = false;
-        Debug.Log($"[WaveManager] ✅ <color=green>WAVE {currentWaveIndex + 1} CLEARED!</color>");
         waveUI?.ShowWaveCleared(currentWaveIndex + 1);
 
         currentWaveIndex++;
-        StartCoroutine(RunWave(delayBetweenWaves));
+        
+        StartCoroutine(RunWave(delayBetweenWaves, clearedDelay: 2f));
     }
 }
