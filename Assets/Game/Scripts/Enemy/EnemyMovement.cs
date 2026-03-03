@@ -1,56 +1,54 @@
-﻿using UnityEditor;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
-  
 public class EnemyMovement : MonoBehaviour
 {
-    
-    [SerializeField] Transform player;
-    private MovementType movementType;
-
-
-    private float moveSpeed;
+    [SerializeField] private Transform player;
 
     [SerializeField] private float zigzagFrequency = 3f;
     [SerializeField] private float zigzagAmplitude = 2f;
     [SerializeField] private float circleFrequency = 2f;
-    [SerializeField] private float circleRadius = 1f;  
+    [SerializeField] private float circleRadius = 1f;
+    [SerializeField] private float damageAmount = 10f;
+    [SerializeField] private float contactDistance = 1f;
 
-    //private WaveManager waveManager;  // FIX 4: Cache instead of FindAnyObjectByType every frame
+    private MovementType movementType;
+    private float moveSpeed;
+    private bool hasDealtDamage; // prevents multi-hit before pool return
 
-
-
-    public void Initialize (MovementType type, float Speed)
+    public void Initialize(MovementType type, float speed)
     {
-       movementType = type;
-        
-       moveSpeed = Speed; 
-    }
-    private void Awake()
-    {
-        //waveManager = FindAnyObjectByType<WaveManager>(); // Cache reference to WaveManager
+        movementType = type;
+        moveSpeed = speed;
+        hasDealtDamage = false; // reset on reuse from pool
     }
 
-
-    void Update()
+    private void OnEnable()
     {
-        if (player == null) return; 
+        hasDealtDamage = false;
+
+        // Auto-find player if not assigned in Inspector
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                player = playerObj.transform;
+            else
+                Debug.LogWarning($"[EnemyMovement] No Player found for {gameObject.name}");
+        }
+    }
+
+    private void Update()
+    {
+        if (player == null || hasDealtDamage) return;
+
         Vector3 toPlayer = (player.position - transform.position).normalized;
-
         Vector3 offset = Vector3.zero;
 
         switch (movementType)
         {
-
-            case MovementType.Straight:
+            case MovementType.ZigZag:
+                offset = transform.right * Mathf.Sin(Time.time * zigzagFrequency) * zigzagAmplitude;
                 break;
-
-            case MovementType.ZigZag: 
-                offset = transform.right * Mathf.Sin(Time.time * zigzagFrequency) * 
-                    zigzagAmplitude; 
-                break;
-
 
             case MovementType.Circle:
                 offset = new Vector3(
@@ -61,31 +59,27 @@ public class EnemyMovement : MonoBehaviour
                 break;
         }
 
-        Vector3 finalDir = (toPlayer + offset).normalized;
-  
-
-
-        if ( movementType != MovementType.Static)
+        if (movementType != MovementType.Static)
         {
-            transform.position +=  moveSpeed * finalDir * Time.deltaTime;
-
+            Vector3 finalDir = (toPlayer + offset).normalized;
+            transform.position += moveSpeed * finalDir * Time.deltaTime;
         }
 
-       ProvideDanage();
+        CheckContactDamage();
     }
 
-    void ProvideDanage()
+    private void CheckContactDamage()
     {
-        if ( Vector3.Distance(transform.position, player.position) < 1f)
-        {
+        if (Vector3.Distance(transform.position, player.position) > contactDistance) return;
 
-            //waveManager.NotifyEnemyDeath();  
-            Debug.Log("Enemy provided damage to player and destroyed!");
-            Debug.Log($"[Enemy] 🔄 {gameObject.name} calling EnemyPool.Return()...");
-            EnemyPool.Instance.Return(gameObject);
-        }   
+        hasDealtDamage = true;
+
+        if (PlayerHealth.Instance != null)
+            PlayerHealth.Instance.TakeDamage(damageAmount);
+        else
+            Debug.LogWarning("[EnemyMovement] PlayerHealth.Instance is null!");
+
+        Debug.Log($"[Enemy] {gameObject.name} dealt {damageAmount} damage, returning to pool.");
+        EnemyPool.Instance.Return(gameObject);
     }
-
-
-
 }

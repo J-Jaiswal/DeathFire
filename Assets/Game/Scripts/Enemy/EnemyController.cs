@@ -34,7 +34,8 @@ public class EnemyController : MonoBehaviour
         // Initialize Health
         health.Initialize(
             enemyData.maxHealth,
-            enemyData.damageToPlayer
+            enemyData.damageToPlayer,
+           enemyData.ScoreValue
         );
     }
 }

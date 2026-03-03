@@ -6,6 +6,7 @@ public class EnemyHealth : MonoBehaviour
     private int maxHealth;
     private int currentHealth;
     private int damageAmount;
+    private int killScore;  
     [SerializeField] private Slider healthBar;
     [SerializeField] Transform target;
 
@@ -15,7 +16,7 @@ public class EnemyHealth : MonoBehaviour
     public Gradient healthGradient;
 
     [Header("References")]
-    private ScoreManager scoreManager;
+    //private ScoreManager scoreManager;
     //private WaveManager waveManager;  // FIX 4: Cache instead of FindAnyObjectByType every death
 
     [Header("Settings")]
@@ -24,11 +25,11 @@ public class EnemyHealth : MonoBehaviour
 
     private void Awake()
     {
-        scoreManager = FindAnyObjectByType<ScoreManager>();
+        //scoreManager = FindAnyObjectByType<ScoreManager>();
         //waveManager = FindAnyObjectByType<WaveManager>();  // FIX 4: Cache on Awake
     }
 
-    public void Initialize(int health, int damage)
+    public void Initialize(int health, int damage ,  int killScore)
     {
         maxHealth = health;
         damageAmount = damage;
@@ -36,6 +37,7 @@ public class EnemyHealth : MonoBehaviour
         healthBar.value = maxHealth;
         healthBarImage.color = healthGradient.Evaluate(1f);
         currentHealth = maxHealth;
+        this.killScore = killScore; 
     }
 
     void HealthBarFace()
@@ -80,9 +82,10 @@ public class EnemyHealth : MonoBehaviour
             Destroy(clone, 2f);
         }
 
-        //waveManager.NotifyEnemyDeath();  // FIX 4: Use cached reference
-        scoreManager.ReportKill(isHeadshot);
-    
+        ScoreManager.Instance.ReportKill(isHeadshot , killScore );
+        
+        //WaveStatsTracker.Instance?.RegisterKill(isHeadshot);
+        WaveSpawnController.Instance?.NotifyEnemyDeath();
         Debug.Log($"[Enemy] 🔄 {gameObject.name} calling EnemyPool.Return()...");
         EnemyPool.Instance.Return(gameObject);
         //Destroy(gameObject);
