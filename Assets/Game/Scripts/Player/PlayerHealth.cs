@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -9,23 +10,45 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private Slider healthBar;
-    [SerializeField] private TextMeshProUGUI healthText;
-    [SerializeField] private Image healthBarFill;  // the colored fill image
-    [SerializeField] private Gradient healthGradient; // set green→yellow→red in Inspector
+    [SerializeField] private Image healthBarFill;
+    [SerializeField] private Gradient healthGradient;
+    [SerializeField] private GameObject deathPanel;
+
 
     [Header("Hit Flash")]
-    [SerializeField] private Image damageFlashOverlay; // full-screen red Image, low alpha
+    [SerializeField] private Image damageFlashOverlay;
     [SerializeField] private float flashDuration = 0.15f;
+
+    public static PlayerHealth Instance { get; private set; }
+
+    public bool IsDead => isDead;
+    public float CurrentHealth => currentHealth;
+    public float MaxHealth => maxHealth;
 
     private float currentHealth;
     private bool isDead;
     private Coroutine flashCoroutine;
 
+    private void Awake()
+    {
+        // Singleton setup belongs in Awake, not Start
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("Multiple PlayerHealth instances detected. Destroying duplicate.");
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+    }
+
     private void Start()
     {
         currentHealth = maxHealth;
+
         if (damageFlashOverlay != null)
-            damageFlashOverlay.color = new Color(1, 0, 0, 0); // start invisible
+            damageFlashOverlay.color = new Color(1, 0, 0, 0);
+
         RefreshUI();
     }
 
@@ -49,6 +72,7 @@ public class PlayerHealth : MonoBehaviour
     public void Heal(float amount)
     {
         if (isDead) return;
+
         currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
         RefreshUI();
     }
@@ -59,9 +83,11 @@ public class PlayerHealth : MonoBehaviour
     {
         float normalized = currentHealth / maxHealth;
 
-        if (healthBar != null) healthBar.value = normalized;
-        if (healthText != null) healthText.text = $"{Mathf.CeilToInt(currentHealth)} / {maxHealth}";
-        if (healthBarFill != null) healthBarFill.color = healthGradient.Evaluate(normalized);
+        if (healthBar != null)
+            healthBar.value = normalized;
+
+        if (healthBarFill != null)
+            healthBarFill.color = healthGradient.Evaluate(normalized);
     }
 
     private void TriggerDamageFlash()
@@ -71,16 +97,29 @@ public class PlayerHealth : MonoBehaviour
         flashCoroutine = StartCoroutine(FlashRoutine());
     }
 
-    private System.Collections.IEnumerator FlashRoutine()
+    private IEnumerator FlashRoutine()
     {
-        damageFlashOverlay.color = new Color(1, 0, 0, 0.35f); // show red flash
-        yield return new WaitForSeconds(flashDuration);
-        damageFlashOverlay.color = new Color(1, 0, 0, 0f);    // fade out
+        // Instant show
+        damageFlashOverlay.color = new Color(1, 0, 0, 0.35f);
+
+        // Smooth fade out over flashDuration
+        float elapsed = 0f;
+        while (elapsed < flashDuration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(0.35f, 0f, elapsed / flashDuration);
+            damageFlashOverlay.color = new Color(1, 0, 0, alpha);
+            yield return null;
+        }
+
+        damageFlashOverlay.color = new Color(1, 0, 0, 0f);
     }
 
     private void OnDeath()
     {
-        // stub — hook up game over screen here later
+        deathPanel.SetActive(true);  
+        Time.timeScale = 0f; 
         Debug.Log("Player died!");
+        
     }
 }
