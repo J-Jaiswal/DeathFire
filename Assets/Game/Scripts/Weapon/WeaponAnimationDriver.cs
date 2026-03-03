@@ -58,7 +58,7 @@ public class WeaponAnimationDriver : MonoBehaviour
         }
 
         nextFireTime = Time.time + (1f / fireRate);
-
+        //WaveStatsTracker.Instance?.RegisterShot(hit: didHit);
         animator.CrossFade("Fire", 0.03f, layerOverlay, 0f);
         SpawnBullet();
         PlayMuzzleFlash();

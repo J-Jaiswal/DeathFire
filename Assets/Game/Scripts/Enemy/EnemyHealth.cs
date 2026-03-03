@@ -85,7 +85,7 @@ public class EnemyHealth : MonoBehaviour
         ScoreManager.Instance.ReportKill(isHeadshot , killScore );
         
         //WaveStatsTracker.Instance?.RegisterKill(isHeadshot);
-        WaveSpawnController.Instance?.NotifyEnemyDeath();
+        WaveSpawnController.Instance?.NotifyEnemyDeath(gameObject);
         Debug.Log($"[Enemy] 🔄 {gameObject.name} calling EnemyPool.Return()...");
         EnemyPool.Instance.Return(gameObject);
         //Destroy(gameObject);
