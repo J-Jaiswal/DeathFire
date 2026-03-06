@@ -78,7 +78,6 @@ public class WaveManager : MonoBehaviour
 
     // ── Wave Flow ────────────────────────────────────────────────
 
-
     private IEnumerator RunWave(float delay, bool isFirstWave = false)
     {
         if (currentWaveIndex >= waves.Count)
@@ -99,13 +98,12 @@ public class WaveManager : MonoBehaviour
         }
 
         WaveEventBus.RaiseWaveStarted(CurrentWaveNumber);
-        yield return null; // One frame buffer for UI to settle
         yield return StartCoroutine(spawnController.RunWave(wave));
     }
 
     private IEnumerator BetweenWaveSequence()
     {
-        yield return new WaitForSecondsRealtime(2f); // Unscaled — safe if timeScale is 0
+        yield return new WaitForSeconds(2f);
 
         int completedWave = currentWaveIndex;
         currentWaveIndex++;
@@ -119,6 +117,7 @@ public class WaveManager : MonoBehaviour
 
         WaveData nextWave = waves[currentWaveIndex];
 
+        // Tell trackers about the upcoming wave
         NextWaveInfoTracker.Instance?.SetNextWave(nextWave);
 
         EnemyPool.Instance.BuildWaveQueue(nextWave.enemies);
@@ -129,7 +128,6 @@ public class WaveManager : MonoBehaviour
 
         StartCoroutine(RunWave(0f));
     }
-
 
     // ── Countdowns ───────────────────────────────────────────────
 
