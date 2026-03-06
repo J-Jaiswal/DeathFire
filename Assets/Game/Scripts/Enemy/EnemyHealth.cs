@@ -15,10 +15,6 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] GameObject deathFVX;
     public Gradient healthGradient;
 
-    //[Header("Settings")]
-    //[SerializeField]
-    ////private bool canBeHeadshot = true;
-
    
     public void Initialize(int health,  int killScore)
     {

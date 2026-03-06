@@ -9,8 +9,8 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float circleFrequency = 2f;
     [SerializeField] private float circleRadius = 1f;
     private int damageAmount ;
-    [SerializeField] private float contactDistance = 3f;
-    [SerializeField] GameObject deathFVX;
+    [SerializeField] private float contactDistance = 4f;
+    //[SerializeField] GameObject deathFVX;
 
 
     private MovementType movementType;
@@ -85,17 +85,13 @@ public class EnemyMovement : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, player.position) > contactDistance) return;
         hasDealtDamage = true;
-        if (deathFVX != null)
-        {
-            GameObject clone = Instantiate(deathFVX, transform.position, Quaternion.identity);
-            Destroy(clone, 2f);
-        }
+        //if (deathFVX != null)
+        //{
+        //    GameObject clone = Instantiate(deathFVX, transform.position, Quaternion.identity);
+        //    Destroy(clone, 2f);
+        //}
 
-        if (PlayerHealth.Instance != null)
-            PlayerHealth.Instance.TakeDamage(damageAmount);
-        else
-            Debug.LogWarning("[EnemyMovement] PlayerHealth.Instance is null!");
-
+        PlayerHealth.Instance.TakeDamage(damageAmount);
         WaveSpawnController.Instance?.NotifyEnemyDeath(gameObject);
 
         EnemyPool.Instance.Return(gameObject);
