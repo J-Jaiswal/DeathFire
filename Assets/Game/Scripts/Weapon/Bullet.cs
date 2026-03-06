@@ -10,6 +10,7 @@ public class Bullet : MonoBehaviour
      private float lifeTime = 1f;
 
 
+    private bool hasHit = false;
     private Rigidbody bulletRB;
     private Vector3 bulletDir;
     AimBehaviour aimController;
@@ -27,24 +28,34 @@ public class Bullet : MonoBehaviour
         StartCoroutine(DestroyAfterDelay(lifeTime));
     }
 
+
     private void OnTriggerEnter(Collider other)
     {
-       Vector3 hitpoint = other.ClosestPoint(transform.position);   
-        if ( other.CompareTag("Enemy"))
+        if (hasHit) return;
+
+        if (other.CompareTag("EnemyHead"))
         {
+            hasHit = true;
+            EnemyHealth enemyHealth = other.GetComponentInParent<EnemyHealth>();
+            if (enemyHealth != null)
+                enemyHealth.TakeDamage(60 , true);
+
+            Destroy(transform.parent.gameObject);
+        }
+        else if (other.CompareTag("Enemy"))
+        {
+            hasHit = true;
             EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.TakeDamage(40 ,hitpoint );
-                Debug.Log("Enemy took damage: " + 40  + other.gameObject.name);
+                enemyHealth.TakeDamage(40 , false); 
             }
-        Destroy( transform.parent.gameObject);    
-        }       
-
+            Destroy(transform.parent.gameObject);
+        }
     }
 
-  
-   private IEnumerator DestroyAfterDelay(float lifeTime)
+
+    private IEnumerator DestroyAfterDelay(float lifeTime)
     {
         yield return new WaitForSeconds(lifeTime);
         Destroy(transform.parent.gameObject);

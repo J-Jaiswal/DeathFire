@@ -25,16 +25,17 @@ public class EnemyController : MonoBehaviour
 
     void InitializeEnemy()
     {
-        // Initialize Movement
+        
         movement.Initialize(
             enemyData.movementType,
-            enemyData.moveSpeed
+            enemyData.moveSpeed , 
+            enemyData.damageToPlayer
         );
 
-        // Initialize Health
+       
         health.Initialize(
             enemyData.maxHealth,
-            enemyData.damageToPlayer,
+         
            enemyData.ScoreValue
         );
     }

@@ -6,26 +6,27 @@ using System.Collections;
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private int maxHealth = 100;
 
     [Header("UI")]
     [SerializeField] private Slider healthBar;
-    [SerializeField] private Image healthBarFill;
+    [SerializeField] private RawImage healthBarFill;
     [SerializeField] private Gradient healthGradient;
     [SerializeField] private GameObject deathPanel;
+    [Header("Death Image Pulse on Hit")]
+    [SerializeField] private Image deathImage;
+    [SerializeField] private float hitPulseMaxAlpha = 0.5f;
+    [SerializeField] private float hitPulseDuration = 1f;
 
-
-    [Header("Hit Flash")]
-    [SerializeField] private Image damageFlashOverlay;
-    [SerializeField] private float flashDuration = 0.15f;
+private Coroutine hitPulseCoroutine;
 
     public static PlayerHealth Instance { get; private set; }
 
-    public bool IsDead => isDead;
-    public float CurrentHealth => currentHealth;
+    //public bool IsDead => isDead;
+    //public int CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
 
-    private float currentHealth;
+    private int currentHealth;
     private bool isDead;
     private Coroutine flashCoroutine;
 
@@ -46,34 +47,21 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
 
-        if (damageFlashOverlay != null)
-            damageFlashOverlay.color = new Color(1, 0, 0, 0);
+        if (deathImage != null)
+            deathImage.color = new Color(1, 0, 0, 0);
 
         RefreshUI();
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    public void TakeDamage(float amount)
+   
+
+    public void Heal(int amount)
     {
         if (isDead) return;
 
-        currentHealth = Mathf.Max(0f, currentHealth - amount);
-        RefreshUI();
-        TriggerDamageFlash();
-
-        if (currentHealth <= 0f)
-        {
-            isDead = true;
-            OnDeath();
-        }
-    }
-
-    public void Heal(float amount)
-    {
-        if (isDead) return;
-
-        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+        currentHealth = Mathf.Min(  maxHealth, currentHealth + amount);
         RefreshUI();
     }
 
@@ -81,38 +69,54 @@ public class PlayerHealth : MonoBehaviour
 
     private void RefreshUI()
     {
-        float normalized = currentHealth / maxHealth;
-
+        float normalized = (float)currentHealth / maxHealth;
         if (healthBar != null)
             healthBar.value = normalized;
-
         if (healthBarFill != null)
             healthBarFill.color = healthGradient.Evaluate(normalized);
     }
 
-    private void TriggerDamageFlash()
+    public void TakeDamage(int amount)
     {
-        if (damageFlashOverlay == null) return;
-        if (flashCoroutine != null) StopCoroutine(flashCoroutine);
-        flashCoroutine = StartCoroutine(FlashRoutine());
+        if (isDead) return;
+        currentHealth = Mathf.Max(0, currentHealth - amount);
+        RefreshUI();
+        //TriggerDamageFlash();
+        TriggerDeathImagePulse(); // <-- add this
+        if (currentHealth <= 0) { isDead = true; OnDeath(); }
     }
 
-    private IEnumerator FlashRoutine()
+    private void TriggerDeathImagePulse()
     {
-        // Instant show
-        damageFlashOverlay.color = new Color(1, 0, 0, 0.35f);
+        if (deathImage == null) return;
+        if (hitPulseCoroutine != null) StopCoroutine(hitPulseCoroutine);
+        hitPulseCoroutine = StartCoroutine(HitPulseRoutine());
+    }
 
-        // Smooth fade out over flashDuration
+    private IEnumerator HitPulseRoutine()
+    {
+        Color c = deathImage.color;
+        float half = hitPulseDuration / 2f;
+
+        // Fade in: 0 → max
         float elapsed = 0f;
-        while (elapsed < flashDuration)
+        while (elapsed < half)
         {
             elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(0.35f, 0f, elapsed / flashDuration);
-            damageFlashOverlay.color = new Color(1, 0, 0, alpha);
+            deathImage.color = new Color(c.r, c.g, c.b, Mathf.Lerp(0f, hitPulseMaxAlpha, elapsed / half));
             yield return null;
         }
 
-        damageFlashOverlay.color = new Color(1, 0, 0, 0f);
+        // Fade out: max → 0
+        elapsed = 0f;
+        while (elapsed < half)
+        {
+            elapsed += Time.deltaTime;
+            deathImage.color = new Color(c.r, c.g, c.b, Mathf.Lerp(hitPulseMaxAlpha, 0f, elapsed / half));
+            yield return null;
+        }
+
+        deathImage.color = new Color(c.r, c.g, c.b, 0f);
     }
 
     private void OnDeath()

@@ -2,23 +2,26 @@
 
 public class EnemyMovement : MonoBehaviour
 {
-    [SerializeField] private Transform player;
+    private Transform player;
 
     [SerializeField] private float zigzagFrequency = 3f;
     [SerializeField] private float zigzagAmplitude = 2f;
     [SerializeField] private float circleFrequency = 2f;
     [SerializeField] private float circleRadius = 1f;
-    [SerializeField] private float damageAmount = 10f;
-    [SerializeField] private float contactDistance = 1f;
+    private int damageAmount ;
+    [SerializeField] private float contactDistance = 3f;
+    [SerializeField] GameObject deathFVX;
+
 
     private MovementType movementType;
     private float moveSpeed;
     private bool hasDealtDamage; // prevents multi-hit before pool return
 
-    public void Initialize(MovementType type, float speed)
+    public void Initialize(MovementType type, float speed , int damageToPlayer)
     {
         movementType = type;
         moveSpeed = speed;
+        damageAmount = damageToPlayer;
         hasDealtDamage = false; // reset on reuse from pool
     }
 
@@ -26,14 +29,13 @@ public class EnemyMovement : MonoBehaviour
     {
         hasDealtDamage = false;
 
-        // Auto-find player if not assigned in Inspector
         if (player == null)
         {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            GameObject playerObj = GameObject.FindGameObjectWithTag("EnemyTarget");
             if (playerObj != null)
                 player = playerObj.transform;
             else
-                Debug.LogWarning($"[EnemyMovement] No Player found for {gameObject.name}");
+                Debug.LogWarning($"[EnemyMovement] EnemyTarget found for {gameObject.name}");
         }
     }
 
@@ -66,20 +68,41 @@ public class EnemyMovement : MonoBehaviour
         }
 
         CheckContactDamage();
+        EnemyFace();
     }
 
+    private void EnemyFace()
+    {
+        if (player != null)
+        {
+            Vector3 direction = player.position - transform.position;
+            //direction.y = 0f;
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = lookRotation * Quaternion.Euler(0f, 180f, 0f); // flip if model faces wrong way
+        }
+    }
     private void CheckContactDamage()
     {
         if (Vector3.Distance(transform.position, player.position) > contactDistance) return;
-
         hasDealtDamage = true;
+        if (deathFVX != null)
+        {
+            GameObject clone = Instantiate(deathFVX, transform.position, Quaternion.identity);
+            Destroy(clone, 2f);
+        }
 
         if (PlayerHealth.Instance != null)
             PlayerHealth.Instance.TakeDamage(damageAmount);
         else
             Debug.LogWarning("[EnemyMovement] PlayerHealth.Instance is null!");
 
-        Debug.Log($"[Enemy] {gameObject.name} dealt {damageAmount} damage, returning to pool.");
+        WaveSpawnController.Instance?.NotifyEnemyDeath(gameObject);
+
         EnemyPool.Instance.Return(gameObject);
+
+        Debug.Log($"[Enemy] {gameObject.name} dealt {damageAmount} damage, returning to pool.");
     }
+
+
+   
 }

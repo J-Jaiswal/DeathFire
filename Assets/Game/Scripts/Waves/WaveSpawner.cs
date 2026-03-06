@@ -8,9 +8,9 @@ public class WaveSpawner : MonoBehaviour
 
     [Header("Glow Effect")]
     [SerializeField] private Color glowColor = Color.blue;
-    [SerializeField] private float glowIntensity = 2f;
+    [SerializeField] private float glowIntensity = 4f;
     [SerializeField] private float pulseSpeed = 2f;
-    [SerializeField] private float glowDuration = 0.2f;
+    [SerializeField] private float glowDuration = 0.3f;
 
     private MaterialPropertyBlock mpb;
 

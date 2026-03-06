@@ -1,36 +1,30 @@
 ﻿using UnityEngine;
 using TMPro;
-
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance { get; private set; }
 
     [Header("Score Values")]
-    //[SerializeField] private int killScore = 100;
-    [SerializeField] private int headshotBonus = 60;
     [SerializeField] private int waveCompletedBonus = 500;
     [SerializeField] private int passiveScorePerTick = 10;
     [SerializeField] private float passiveScoreInterval = 2f;
 
     [Header("Combo Settings")]
-    [SerializeField] private float comboWindow = 2f;       // seconds to land kills in
-    [SerializeField] private int comboThreshold = 2;       // kills needed to trigger combo
-    [SerializeField] private float comboMultiplier = 1.5f; // bonus multiplier on top of base
+    [SerializeField] private float comboWindow = 2f;
+    [SerializeField] private int comboThreshold = 2;
+    [SerializeField] private float comboMultiplier = 1.5f;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI scoreText;
 
-    [Header("References")]
+    [Header("Floating Text")]
     [SerializeField] private FloatingText killFloatingText;
+    [SerializeField] private FloatingText headshotFloatingText;
     [SerializeField] private FloatingText comboFloatingText;
 
     private int totalScore = 0;
-
-    // Combo tracking
     private int recentKillCount = 0;
     private float lastKillTime = -999f;
-
-    // Passive score
     private float passiveTimer = 0f;
 
     private void Awake()
@@ -46,50 +40,36 @@ public class ScoreManager : MonoBehaviour
         {
             passiveTimer = 0f;
             AddScore(passiveScorePerTick);
-            // No floating text for passive ticks — keeps screen clean
         }
 
-        // Reset combo counter if window has passed without a new kill
         if (recentKillCount > 0 && Time.time - lastKillTime > comboWindow)
             recentKillCount = 0;
     }
 
-    public void ReportKill(bool isHeadshot , int killScore)
+    // Called on every headshot hit — visual feedback only, no score
+    public void ReportHeadshot()
+    {
+        headshotFloatingText?.Show("HEADSHOT!", Color.red);
+    }
+
+    // Called only on kill — score, combo, kill text
+    public void ReportKill(int killScore)
     {
         int earned = killScore;
 
-        // --- Combo check ---
         float timeSinceLast = Time.time - lastKillTime;
-        if (timeSinceLast <= comboWindow)
-            recentKillCount++;
-        else
-            recentKillCount = 1;
-
+        recentKillCount = timeSinceLast <= comboWindow ? recentKillCount + 1 : 1;
         lastKillTime = Time.time;
 
-        bool isCombo = recentKillCount >= comboThreshold;
-        int comboBonus = 0;
-
-        if (isCombo)
+        if (recentKillCount >= comboThreshold)
         {
-            comboBonus = Mathf.RoundToInt(earned * comboMultiplier);
+            int comboBonus = Mathf.RoundToInt(earned * comboMultiplier);
             ShowComboText(recentKillCount, comboBonus);
+            earned += comboBonus;
         }
 
-        // --- Headshot label (kill floating text) ---
-        if (isHeadshot)
-        {
-            earned += headshotBonus;
-            killFloatingText?.Prepare($"HEADSHOT! +{earned}", Color.red);
-            if (killFloatingText != null) killFloatingText.ShowText = true;
-        }
-        else
-        {
-            killFloatingText?.Prepare($"+{earned}", Color.white);
-            if (killFloatingText != null) killFloatingText.ShowText = true;
-        }
-
-        AddScore(earned + comboBonus);
+        killFloatingText?.Show($"+{earned}", Color.white);
+        AddScore(earned);
     }
 
     private void ShowComboText(int killsInWindow, int bonus)
@@ -101,16 +81,13 @@ public class ScoreManager : MonoBehaviour
             4 => "QUAD KILL!",
             _ => $"{killsInWindow}x KILL!"
         };
-
-        comboFloatingText?.Prepare($"{label}  +{bonus}", Color.cyan);
-        if (comboFloatingText != null) comboFloatingText.ShowText = true;
+        comboFloatingText?.Show($"{label}  +{bonus}", Color.cyan);
     }
 
     public void ReportWaveCompleted()
     {
         AddScore(waveCompletedBonus);
-        comboFloatingText?.Prepare($"+{waveCompletedBonus}  WAVE CLEAR!", Color.yellow);
-        if (comboFloatingText != null) comboFloatingText.ShowText = true;
+        comboFloatingText?.Show($"+{waveCompletedBonus}  WAVE CLEAR!", Color.yellow);
     }
 
     private void AddScore(int amount)
