@@ -19,19 +19,17 @@ public class WaveSpawner : MonoBehaviour
         mpb = new MaterialPropertyBlock();
     }
 
-    /// <summary>
-    /// Called before first wave only — builds the initial wave queue during countdown.
-    /// </summary>
     public void PrepareQueue(WaveData wave)
     {
-        Debug.Log($"[WaveSpawner] 🔥 PrepareQueue() for: <color=white>{wave.waveName}</color> | Enemies: {wave.enemies.Length}");
+        Debug.Log($"[WaveSpawner] PrepareQueue: {wave.waveName} | Enemies: {wave.enemies.Length}");
         EnemyPool.Instance.BuildWaveQueue(wave.enemies);
         EnemyPool.Instance.LogPoolState();
     }
 
-    public IEnumerator SpawnWave(WaveData wave, System.Action onEnemySpawned)
+    // Callback now passes back the spawned GameObject
+    public IEnumerator SpawnWave(WaveData wave, System.Action<GameObject> onEnemySpawned)
     {
-        Debug.Log($"[WaveSpawner] 🚀 SpawnWave() | <color=white>{wave.waveName}</color> | Enemies: <color=yellow>{wave.enemies.Length}</color>");
+        Debug.Log($"[WaveSpawner] SpawnWave: {wave.waveName} | Enemies: {wave.enemies.Length}");
 
         int index = 0;
         while (EnemyPool.Instance.QueueCount > 0)
@@ -40,7 +38,7 @@ public class WaveSpawner : MonoBehaviour
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             MeshRenderer meshRend = spawnPoint.GetComponent<MeshRenderer>();
 
-            Debug.Log($"[WaveSpawner] 👾 Spawning {index}/{wave.enemies.Length} at {spawnPoint.name}");
+            Debug.Log($"[WaveSpawner] Spawning {index}/{wave.enemies.Length} at {spawnPoint.name}");
 
             if (meshRend != null)
             {
@@ -49,8 +47,8 @@ public class WaveSpawner : MonoBehaviour
                 yield return new WaitForSeconds(0.2f);
             }
 
-            EnemyPool.Instance.GetNext(spawnPoint.position, Quaternion.identity);
-            onEnemySpawned?.Invoke();
+            // Capture the spawned enemy
+            GameObject spawnedEnemy = EnemyPool.Instance.GetNext(spawnPoint.position, Quaternion.identity);
 
             if (meshRend != null)
             {
@@ -58,10 +56,13 @@ public class WaveSpawner : MonoBehaviour
                 meshRend.enabled = false;
             }
 
+            // Notify AFTER glow delay — enemy is fully active and visible
+            onEnemySpawned?.Invoke(spawnedEnemy);
+
             yield return new WaitForSeconds(wave.spawnInterval);
         }
 
-        Debug.Log($"[WaveSpawner] 🏁 All enemies spawned for: <color=white>{wave.waveName}</color>");
+        Debug.Log($"[WaveSpawner] All enemies spawned: {wave.waveName}");
     }
 
     private IEnumerator GlowEffect(MeshRenderer rend)

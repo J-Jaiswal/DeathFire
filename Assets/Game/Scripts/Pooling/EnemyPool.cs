@@ -89,7 +89,7 @@ public class EnemyPool : MonoBehaviour
 
         //WaveStatsTracker.Instance?.RegisterKill(isHeadshot);
         //WaveStatsTracker.Instance?.RegisterKill(isHeadshot);
-        WaveSpawnController.Instance?.NotifyEnemyDeath();
+        WaveSpawnController.Instance?.NotifyEnemyDeath(gameObject);
     }
 
     private GameObject CreateNew(GameObject prefab)
