@@ -12,7 +12,7 @@ public class WaveSpawnController : MonoBehaviour
     private int enemiesAlive;
     private int enemiesSpawned;
     private bool isSpawning;
-    private bool waveInProgress;
+    public bool WaveInProgress { get; private set; }
     private bool completionNotified;
 
     // Track registered enemies to prevent orphan death calls
@@ -36,7 +36,7 @@ public class WaveSpawnController : MonoBehaviour
         enemiesAlive = 0;
         enemiesSpawned = 0;
         isSpawning = true;
-        waveInProgress = true;
+        WaveInProgress = true;
         completionNotified = false;
         registeredEnemies.Clear();
 
@@ -46,7 +46,7 @@ public class WaveSpawnController : MonoBehaviour
         Debug.Log($"[WaveSpawnController] Spawning done | Alive: {enemiesAlive} | Spawned: {enemiesSpawned}");
         CheckCompletion();
 
-        yield return new WaitUntil(() => !waveInProgress);
+        yield return new WaitUntil(() => !WaveInProgress);
     }
 
     /// <summary>
@@ -85,14 +85,14 @@ public class WaveSpawnController : MonoBehaviour
 
     private void CheckCompletion()
     {
-        if (!waveInProgress) return;
+        if (!WaveInProgress) return;
         if (isSpawning) return;
         if (enemiesAlive > 0) return;
         if (enemiesSpawned == 0) return;
         if (completionNotified) return;
 
         completionNotified = true;
-        waveInProgress = false;
+        WaveInProgress = false;
         StartCoroutine(NotifyCompleteNextFrame());
     }
 

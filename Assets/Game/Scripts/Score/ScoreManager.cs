@@ -22,7 +22,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private FloatingText headshotFloatingText;
     [SerializeField] private FloatingText comboFloatingText;
 
-    private int totalScore = 0;
+    public int TotalScore  { get; private set; }
     private int recentKillCount = 0;
     private float lastKillTime = -999f;
     private float passiveTimer = 0f;
@@ -31,6 +31,7 @@ public class ScoreManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        TotalScore = 0; 
     }
 
     private void Update()
@@ -49,7 +50,7 @@ public class ScoreManager : MonoBehaviour
     // Called on every headshot hit — visual feedback only, no score
     public void ReportHeadshot()
     {
-        headshotFloatingText?.Show("HEADSHOT!", Color.red);
+        headshotFloatingText.Show("HEADSHOT!", Color.red);
     }
 
     // Called only on kill — score, combo, kill text
@@ -68,7 +69,7 @@ public class ScoreManager : MonoBehaviour
             earned += comboBonus;
         }
 
-        killFloatingText?.Show($"+{earned}", Color.white);
+        killFloatingText.Show($"+{earned}", Color.white);
         AddScore(earned);
     }
 
@@ -81,24 +82,24 @@ public class ScoreManager : MonoBehaviour
             4 => "QUAD KILL!",
             _ => $"{killsInWindow}x KILL!"
         };
-        comboFloatingText?.Show($"{label}  +{bonus}", Color.cyan);
+        comboFloatingText.Show($"{label}", Color.cyan);
     }
 
     public void ReportWaveCompleted()
     {
         AddScore(waveCompletedBonus);
-        comboFloatingText?.Show($"+{waveCompletedBonus}  WAVE CLEAR!", Color.yellow);
+        comboFloatingText.Show($"+{waveCompletedBonus}  WAVE CLEAR!", Color.yellow);
     }
 
     private void AddScore(int amount)
     {
-        totalScore += amount;
+        TotalScore += amount;
         RefreshUI();
     }
 
     private void RefreshUI()
     {
         if (scoreText != null)
-            scoreText.text = totalScore.ToString("N0");
+            scoreText.text = TotalScore.ToString("N0");
     }
 }

@@ -56,6 +56,8 @@ public class EnemyHealth : MonoBehaviour
             Destroy(clone, 2f);
         }
 
+        WaveStatsTracker.Instance.RegisterKill();
+
         ScoreManager.Instance.ReportKill(killScore); 
         WaveSpawnController.Instance.NotifyEnemyDeath(gameObject);
         EnemyPool.Instance.Return(gameObject);

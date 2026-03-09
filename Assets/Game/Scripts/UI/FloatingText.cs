@@ -2,16 +2,7 @@
 using TMPro;
 using System.Collections;
 
-/// <summary>
-/// Two instances recommended in the Canvas:
-///   • "KillFloatingText"  — for kill / headshot scores
-///   • "ComboFloatingText" — for combo / wave bonuses
-///
-/// Each instance floats up from Vector2.zero (its anchored home),
-/// fades out, then deactivates. A random horizontal + vertical
-/// spawn offset (±offsetRange) keeps overlapping texts readable.
-/// Trigger via the ShowText bool or call Show() directly.
-/// </summary>
+
 public class FloatingText : MonoBehaviour
 {
     [Header("Text")]
@@ -45,11 +36,7 @@ public class FloatingText : MonoBehaviour
     private RectTransform rectTransform;
     private Coroutine activeCoroutine;
 
-    private void Awake()
-    {
-        rectTransform = GetComponent<RectTransform>();
-        gameObject.SetActive(false);
-    }
+  
 
     private void TriggerFromBool() => Show(pendingText, pendingColor);
 
@@ -61,23 +48,30 @@ public class FloatingText : MonoBehaviour
     }
 
     /// <summary>Direct call — activates and runs the float animation.</summary>
-    public void Show(string text, Color color)
-    {
-        label.text = text;
+   
+ private void Awake()
+{
+    rectTransform = rectTransform != null ? rectTransform : GetComponent<RectTransform>();
+    //gameObject.SetActive(false);
+}
 
-        gameObject.SetActive(true);
+public void Show(string text, Color color)
+{
+    // Safety in case Show() is called before Awake
+    if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
 
-        // Apply random spawn offset so stacked texts don't perfectly overlap
-        float rx = Random.Range(-offsetRangeX, offsetRangeX);
-        float ry = Random.Range(-offsetRangeY, offsetRangeY);
-        rectTransform.anchoredPosition = new Vector2(rx, ry);
+    if (activeCoroutine != null) { StopCoroutine(activeCoroutine); activeCoroutine = null; }
 
-        label.color = new Color(color.r, color.g, color.b, 1f);
+    label.text = text;
+    label.color = new Color(color.r, color.g, color.b, 1f);
 
-        if (activeCoroutine != null) StopCoroutine(activeCoroutine);
-        activeCoroutine = StartCoroutine(Animate(color));
-    }
+    float rx = Random.Range(-offsetRangeX, offsetRangeX);
+    float ry = Random.Range(-offsetRangeY, offsetRangeY);
+    rectTransform.anchoredPosition = new Vector2(rx, ry);
 
+    gameObject.SetActive(true);
+    activeCoroutine = StartCoroutine(Animate(color));
+}
     private IEnumerator Animate(Color originalColor)
     {
         float elapsed = 0f;

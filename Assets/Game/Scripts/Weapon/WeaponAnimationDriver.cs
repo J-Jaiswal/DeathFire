@@ -23,11 +23,15 @@ public class WeaponAnimationDriver : MonoBehaviour
 
     private int layerOverlay;
     private int layerActions;
+    bool waveIsActive;
+  
 
     private void Awake()
     {
         layerOverlay = animator.GetLayerIndex("Layer Overlay");
         layerActions = animator.GetLayerIndex("Layer Actions");
+
+        WaveStatsTracker waveStatsTracker = WaveStatsTracker.Instance;
     }
 
     private void Update()
@@ -39,15 +43,19 @@ public class WeaponAnimationDriver : MonoBehaviour
             TryReload();
 
         if (Input.GetKeyDown(KeyCode.T))
-            StartInspect();
+            StartCoroutine (StartInspect());
     }
 
     // ── Firing ────────────────────────────────────────────────────────────────
 
     public void TryFire()
     {
+        waveIsActive = WaveSpawnController.Instance.WaveInProgress;
+
         if (isReloading || isInspecting || isHolstered) return;
+
         if (Time.time < nextFireTime) return;
+        if (!waveIsActive) return;
 
         // Ask AmmoSystem for permission — it decrements and handles auto-reload trigger
         if (!ammoSystem.TryShoot())
@@ -56,10 +64,11 @@ public class WeaponAnimationDriver : MonoBehaviour
             TryReload();
             return;
         }
-
+        //WaveStatsTracker.Instance.RegisterShot(false);
         nextFireTime = Time.time + (1f / fireRate);
         //WaveStatsTracker.Instance?.RegisterShot(hit: didHit);
         animator.CrossFade("Fire", 0.03f, layerOverlay, 0f);
+        WaveStatsTracker.Instance.RegisterFired();
         SpawnBullet();
         PlayMuzzleFlash();
     }
@@ -71,12 +80,12 @@ public class WeaponAnimationDriver : MonoBehaviour
         // AmmoSystem decides if reload is actually needed
         if (isReloading || isInspecting) return;
         if (!ammoSystem.NeedsReload()) return;
+        isReloading = true;
 
         // Pick animation: full mag or empty mag
         string animName = ammoSystem.IsEmpty ? "Reload Empty" : "Reload";
         animator.Play(animName, layerActions, 0f);
 
-        isReloading = true;
 
         // Tell AmmoSystem reload started — it shows the UI progress bar
         // Pass our OnReloadComplete so AmmoSystem calls us back when done
@@ -92,10 +101,15 @@ public class WeaponAnimationDriver : MonoBehaviour
 
     // ── Inspect ───────────────────────────────────────────────────────────────
 
-    public void StartInspect()
+    public IEnumerator StartInspect()
     {
-        if (isReloading || isInspecting || isHolstered) return;
+        if (isReloading || isInspecting || isHolstered || !waveIsActive)
+            
+        yield break;
+        isInspecting = true;
         animator.Play("Inspect", layerActions, 0f);
+        yield return new WaitForSeconds(2f);
+        isInspecting = false;   
     }
 
     // ── Gameplay Hooks ────────────────────────────────────────────────────────

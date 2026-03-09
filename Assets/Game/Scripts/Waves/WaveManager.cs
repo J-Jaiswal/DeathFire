@@ -15,7 +15,7 @@ public class WaveManager : MonoBehaviour
 
     public static WaveManager Instance { get; private set; }
 
-    private int currentWaveIndex = 0;
+    private int currentWaveIndex = 0 ;
     private WaveSpawnController spawnController;
 
     public int CurrentWaveNumber => currentWaveIndex + 1;

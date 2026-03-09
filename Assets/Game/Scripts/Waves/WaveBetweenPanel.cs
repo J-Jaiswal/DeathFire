@@ -14,9 +14,11 @@ public class WaveBetweenPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI statsAccuracyText;
 
     [Header("Right — Next Wave Info")]
-    [SerializeField] private TextMeshProUGUI nextWaveTitleText;
-    [SerializeField] private TextMeshProUGUI nextWaveEnemyListText;
-    [SerializeField] private TextMeshProUGUI nextWaveDropsText;
+    [SerializeField] private TextMeshProUGUI nextWaveHeader;
+
+    [SerializeField] private TextMeshProUGUI nextWaveEnemies;
+    [SerializeField] private TextMeshProUGUI nextWaveEnemyNum;
+    [SerializeField] private TextMeshProUGUI nextWaveammo;
 
     [Header("Countdown (inside panel)")]
     [SerializeField] private TextMeshProUGUI countdownLabelText;
@@ -28,6 +30,7 @@ public class WaveBetweenPanel : MonoBehaviour
     public bool IsOpen { get; private set; }
 
     private void Awake() => panelRoot?.SetActive(false);
+    private int currentWaveNumber;
 
     // ── Public Entry Point ───────────────────────────────────────
 
@@ -35,12 +38,12 @@ public class WaveBetweenPanel : MonoBehaviour
     public IEnumerator Show(int completedWaveNumber, WaveData nextWave, float countdownDuration)
     {
         IsOpen = true;
-
-        PopulateStats(completedWaveNumber);
-        PopulateNextWaveInfo(nextWave);
+        currentWaveNumber = completedWaveNumber;    
+        PopulateStats(currentWaveNumber);
+        PopulateNextWaveInfo(nextWave , currentWaveNumber);
         panelRoot?.SetActive(true);
 
-        WaveStatsTracker.Instance?.LogSummary();
+        //WaveStatsTracker.Instance?.LogSummary();
 
         yield return StartCoroutine(PanelCountdown(countdownDuration, completedWaveNumber + 1));
 
@@ -83,46 +86,33 @@ public class WaveBetweenPanel : MonoBehaviour
 
     // ── Next Wave Info ───────────────────────────────────────────
 
-    private void PopulateNextWaveInfo(WaveData nextWave)
+    private void PopulateNextWaveInfo(WaveData nextWave ,  int waveNumber)
     {
         var info = NextWaveInfoTracker.Instance;
-
         if (info == null || info.NextWave == null)
-        {
-            if (nextWaveTitleText != null) nextWaveTitleText.text = "Final Wave";
-            if (nextWaveEnemyListText != null) nextWaveEnemyListText.text = "";
-            if (nextWaveDropsText != null) nextWaveDropsText.text = "";
+        {  
             return;
         }
 
-        if (nextWaveTitleText != null)
-            nextWaveTitleText.text = $"NEXT: {info.NextWave.waveName}\n" +
-                                     $"<size=80%><color=#AAAAAA>{info.TotalEnemies} enemies</color></size>";
+        if (nextWaveHeader != null )
+            nextWaveHeader.text = $"WAVE {waveNumber +1 } INFO";
+        if (nextWaveEnemies != null)
+            nextWaveEnemies.text =
+                $"Enemies Details\n<size=100%><color=#FFD700>{info.EnemyDetails}</color></size>";
 
-        if (nextWaveEnemyListText != null)
-        {
-            var sb = new System.Text.StringBuilder();
-            foreach (var kv in info.EnemyTypeCounts)
-                sb.AppendLine($"<color=#FF4444>▸</color> {kv.Key}  <color=#FFFFFF>×{kv.Value}</color>");
-            nextWaveEnemyListText.text = sb.ToString().TrimEnd();
-        }
+        if (nextWaveEnemyNum != null)
+            nextWaveEnemyNum.text =
+                $"Total Enemies\n<size=110%><color=#FFD700>{info.TotalEnemies}</color></size>";
 
-        if (nextWaveDropsText != null)
-        {
-            string ammoLine = info.FullAmmoRefill
-                ? "<color=#FFD700>⬡</color> Ammo  <color=#FFD700>FULL REFILL</color>"
+        string ammoLine = info.FullAmmoRefill
+                ? " Ammo\n<size=110%><color=#FFD700>FULL REFILL</color></size>"
                 : info.AmmoRefillAmount > 0
-                    ? $"<color=#FFD700>⬡</color> Ammo  <color=#FFD700>+{info.AmmoRefillAmount}</color>"
-                    : "<color=#555555>⬡</color> Ammo  <color=#555555>None</color>";
+                    ? $"<color=#FFD700>⬡</color> Ammo\n<size=110%><color=#FFD700>+{info.AmmoRefillAmount}</color></size>"
+                    : "<color=#555555>⬡</color> Ammo\n<size=110%><color=#FFD700>None</color></size>";
 
-            string healthLine = info.HealthDrop
-                ? $"<color=#FF4444>♥</color> Health  <color=#FF4444>{info.HealthDropChance * 100f:F0}% chance</color>"
-                : "<color=#555555>♥</color> Health  <color=#555555>None</color>";
+        nextWaveammo.text = $"{ammoLine}\n"; 
 
-            nextWaveDropsText.text = $"{ammoLine}\n{healthLine}";
-        }
     }
-
     // ── Countdown ────────────────────────────────────────────────
 
     private IEnumerator PanelCountdown(float totalSeconds, int nextWaveNumber)

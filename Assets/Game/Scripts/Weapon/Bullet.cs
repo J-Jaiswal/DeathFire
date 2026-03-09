@@ -40,6 +40,10 @@ public class Bullet : MonoBehaviour
             if (enemyHealth != null)
                 enemyHealth.TakeDamage(60 , true);
 
+            WaveStatsTracker.Instance.RegisterHeadShot();
+            WaveStatsTracker.Instance.RegisterHit();
+
+
             Destroy(transform.parent.gameObject);
         }
         else if (other.CompareTag("Enemy"))
@@ -50,6 +54,7 @@ public class Bullet : MonoBehaviour
             {
                 enemyHealth.TakeDamage(40 , false); 
             }
+            WaveStatsTracker.Instance.RegisterHit();
             Destroy(transform.parent.gameObject);
         }
     }

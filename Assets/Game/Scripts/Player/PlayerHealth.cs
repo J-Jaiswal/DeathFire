@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections;
 using TMPro;
-using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -121,9 +122,14 @@ private Coroutine hitPulseCoroutine;
 
     private void OnDeath()
     {
-        deathPanel.SetActive(true);  
-        Time.timeScale = 0f; 
+
+        int waveReached = WaveManager.Instance != null ? WaveManager.Instance.CurrentWaveNumber : 0;
+        int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.TotalScore : 0;
+
+        WaveStatsTracker.Instance.CommitRunResults(finalScore, waveReached);
+
+        if (deathPanel != null) deathPanel.SetActive(true);
+        Time.timeScale = 0f;
         Debug.Log("Player died!");
-        
     }
 }

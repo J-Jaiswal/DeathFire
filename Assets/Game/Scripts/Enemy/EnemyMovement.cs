@@ -9,7 +9,7 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float circleFrequency = 2f;
     [SerializeField] private float circleRadius = 1f;
     private int damageAmount ;
-    [SerializeField] private float contactDistance = 4f;
+    private float contactDistance = 3f;
     //[SerializeField] GameObject deathFVX;
 
 
