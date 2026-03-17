@@ -83,7 +83,8 @@ private Coroutine hitPulseCoroutine;
         currentHealth = Mathf.Max(0, currentHealth - amount);
         RefreshUI();
         //TriggerDamageFlash();
-        TriggerDeathImagePulse(); // <-- add this
+        TriggerDeathImagePulse();
+        SFXManager.Instance.PlayPlayerHurt();
         if (currentHealth <= 0) { isDead = true; OnDeath(); }
     }
 
@@ -127,7 +128,7 @@ private Coroutine hitPulseCoroutine;
         int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.TotalScore : 0;
 
         WaveStatsTracker.Instance.CommitRunResults(finalScore, waveReached);
-
+        SFXManager.Instance.PlayPlayerDeath();
         if (deathPanel != null) deathPanel.SetActive(true);
         Time.timeScale = 0f;
         Debug.Log("Player died!");

@@ -25,19 +25,19 @@ public class WaveBetweenPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI countdownNumberText;
 
     [Header("Dependencies")]
-    [SerializeField] private WavePauseController pauseController;
+    [SerializeField] private WaveButtonController pauseController;
 
     public bool IsOpen { get; private set; }
 
     private void Awake() => panelRoot?.SetActive(false);
     private int currentWaveNumber;
 
-    // ── Public Entry Point ───────────────────────────────────────
 
-    /// <summary>WaveManager yields on this. Returns when countdown ends.</summary>
     public IEnumerator Show(int completedWaveNumber, WaveData nextWave, float countdownDuration)
     {
         IsOpen = true;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         currentWaveNumber = completedWaveNumber;    
         PopulateStats(currentWaveNumber);
         PopulateNextWaveInfo(nextWave , currentWaveNumber);
@@ -53,6 +53,8 @@ public class WaveBetweenPanel : MonoBehaviour
     private void Close()
     {
         panelRoot?.SetActive(false);
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
         IsOpen = false;
         pauseController?.Resume();
     }
@@ -123,6 +125,7 @@ public class WaveBetweenPanel : MonoBehaviour
         {
             SetCountdownDisplay($"Wave {nextWaveNumber} starts in", remaining.ToString(), Color.white);
 
+            SFXManager.Instance.PlayCountdownTick(); // or PlayCountdownTick()
             float elapsed = 0f;
             while (elapsed < 1f)
             {
@@ -135,6 +138,7 @@ public class WaveBetweenPanel : MonoBehaviour
         }
 
         SetCountdownDisplay("Get Ready!", "GO!", Color.yellow);
+        SFXManager.Instance.PlayWaveStart();
         yield return new WaitForSecondsRealtime(0.6f);
     }
 

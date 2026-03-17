@@ -36,6 +36,7 @@ public class Bullet : MonoBehaviour
         if (other.CompareTag("EnemyHead"))
         {
             hasHit = true;
+            SFXManager.Instance.PlayHeadshot();
             EnemyHealth enemyHealth = other.GetComponentInParent<EnemyHealth>();
             if (enemyHealth != null)
                 enemyHealth.TakeDamage(60 , true);
@@ -43,12 +44,12 @@ public class Bullet : MonoBehaviour
             WaveStatsTracker.Instance.RegisterHeadShot();
             WaveStatsTracker.Instance.RegisterHit();
 
-
             Destroy(transform.parent.gameObject);
         }
         else if (other.CompareTag("Enemy"))
         {
             hasHit = true;
+            SFXManager.Instance.PlayEnemyDamage();
             EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {

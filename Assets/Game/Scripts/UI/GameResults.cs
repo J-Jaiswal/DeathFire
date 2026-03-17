@@ -12,7 +12,7 @@ public static class GameResultsData
         ShotsFired > 0 ? (float)ShotsHit / ShotsFired * 100f : 0f;
 
     public static float HeadshotPercent =>
-        Kills > 0 ? (float)Headshots / Kills * 100f : 0f;
+        Kills > 0 ? (float)Headshots / ShotsHit * 100f : 0f;
 
   
 }

@@ -4,14 +4,12 @@ using System.Collections.Generic;
 public class NextWaveInfoTracker : MonoBehaviour
 {
     public static NextWaveInfoTracker Instance { get; private set; }
-
     public WaveData NextWave { get; private set; }
-
-    public string EnemyDetails;
     public int TotalEnemies { get; private set; }
     public bool FullAmmoRefill { get; private set; }
     public int AmmoRefillAmount { get; private set; }
-   
+    public string EnemyDetails { get; private set; }
+
 
 
     private void Awake()

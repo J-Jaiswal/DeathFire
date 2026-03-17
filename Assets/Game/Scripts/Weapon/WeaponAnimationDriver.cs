@@ -67,6 +67,7 @@ public class WeaponAnimationDriver : MonoBehaviour
         //WaveStatsTracker.Instance.RegisterShot(false);
         nextFireTime = Time.time + (1f / fireRate);
         //WaveStatsTracker.Instance?.RegisterShot(hit: didHit);
+        SFXManager.Instance.PlayGunshot();
         animator.CrossFade("Fire", 0.03f, layerOverlay, 0f);
         WaveStatsTracker.Instance.RegisterFired();
         SpawnBullet();
@@ -81,6 +82,7 @@ public class WeaponAnimationDriver : MonoBehaviour
         if (isReloading || isInspecting) return;
         if (!ammoSystem.NeedsReload()) return;
         isReloading = true;
+        SFXManager.Instance.PlayReload();
 
         // Pick animation: full mag or empty mag
         string animName = ammoSystem.IsEmpty ? "Reload Empty" : "Reload";
@@ -107,6 +109,7 @@ public class WeaponAnimationDriver : MonoBehaviour
             
         yield break;
         isInspecting = true;
+        SFXManager.Instance.PlayHoister();
         animator.Play("Inspect", layerActions, 0f);
         yield return new WaitForSeconds(2f);
         isInspecting = false;   
