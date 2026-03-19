@@ -26,6 +26,8 @@ public class WaveBetweenPanel : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField] private WaveButtonController pauseController;
+    [Header("Countdown Animation")]
+    [SerializeField] private CountdownAnimation countdownAnimator;
 
     public bool IsOpen { get; private set; }
 
@@ -124,8 +126,9 @@ public class WaveBetweenPanel : MonoBehaviour
         while (remaining > 0)
         {
             SetCountdownDisplay($"Wave {nextWaveNumber} starts in", remaining.ToString(), Color.white);
+            countdownAnimator?.PlayTick(remaining); // ✅ uncommented
+            SFXManager.Instance.PlayCountdownTick();
 
-            SFXManager.Instance.PlayCountdownTick(); // or PlayCountdownTick()
             float elapsed = 0f;
             while (elapsed < 1f)
             {
@@ -138,10 +141,10 @@ public class WaveBetweenPanel : MonoBehaviour
         }
 
         SetCountdownDisplay("Get Ready!", "GO!", Color.yellow);
+        countdownAnimator?.PlayTick(0); // ✅ uncommented
         SFXManager.Instance.PlayWaveStart();
         yield return new WaitForSecondsRealtime(0.6f);
     }
-
     private void SetCountdownDisplay(string label, string number, Color color)
     {
         if (countdownLabelText != null) { countdownLabelText.text = label; countdownLabelText.color = color; }

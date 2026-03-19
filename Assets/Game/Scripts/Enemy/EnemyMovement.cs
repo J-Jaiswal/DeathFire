@@ -10,19 +10,40 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float circleRadius = 1f;
     private int damageAmount ;
     private float contactDistance = 3f;
+    private MovementType movementType;
     //[SerializeField] GameObject deathFVX;
 
+    // Speed scaling
+     [SerializeField]  private float moveSpeed;
+    private float baseSpeed;
+    private float speedScaleRate;
+    private float elapsedTime;
+    // Elite movement
+    [SerializeField] private float elitePatternChangInterval = 2.5f;
+    private float elitePatternTimer;
+    private MovementType eliteCurrentPattern;
+    private readonly MovementType[] elitePatternPool = new[]
+    {
+    MovementType.ZigZag,
+    MovementType.Circle,
+    MovementType.Straight
+};
 
-    private MovementType movementType;
-    private float moveSpeed;
+
     private bool hasDealtDamage; // prevents multi-hit before pool return
 
-    public void Initialize(MovementType type, float speed , int damageToPlayer)
+    public void Initialize(MovementType type, float speed, int damageToPlayer, float accelerate)
     {
         movementType = type;
         moveSpeed = speed;
+        baseSpeed = speed;
         damageAmount = damageToPlayer;
-        hasDealtDamage = false; // reset on reuse from pool
+        speedScaleRate = accelerate;
+        hasDealtDamage = false;
+        elapsedTime = 0f;
+
+        if (movementType == MovementType.Elite)
+            PickNewElitePattern();
     }
 
     private void OnEnable()
@@ -38,15 +59,47 @@ public class EnemyMovement : MonoBehaviour
                 Debug.LogWarning($"[EnemyMovement] EnemyTarget found for {gameObject.name}");
         }
     }
+    private void PickNewElitePattern()
+    {
+        // Pick any pattern except the one currently active
+        MovementType next;
+        do
+        {
+            next = elitePatternPool[Random.Range(0, elitePatternPool.Length)];
+        }
+        while (next == eliteCurrentPattern && elitePatternPool.Length > 1);
 
+        eliteCurrentPattern = next;
+        elitePatternTimer = elitePatternChangInterval;
+
+        Debug.Log($"[Elite] {gameObject.name} switched to {eliteCurrentPattern}");
+    }
     private void Update()
     {
         if (player == null || hasDealtDamage) return;
 
+        elapsedTime += Time.deltaTime;
+
+        // --- Speed scaling over time ---
+       
+        moveSpeed = baseSpeed + elapsedTime * speedScaleRate;
+        // --- Elite pattern switching ---
+        if (movementType == MovementType.Elite)
+        {
+            elitePatternTimer -= Time.deltaTime;
+            if (elitePatternTimer <= 0f)
+                PickNewElitePattern();
+        }
+
+        // --- Movement ---
+        MovementType activePattern = movementType == MovementType.Elite
+            ? eliteCurrentPattern
+            : movementType;
+
         Vector3 toPlayer = (player.position - transform.position).normalized;
         Vector3 offset = Vector3.zero;
 
-        switch (movementType)
+        switch (activePattern)
         {
             case MovementType.ZigZag:
                 offset = transform.right * Mathf.Sin(Time.time * zigzagFrequency) * zigzagAmplitude;
@@ -61,7 +114,7 @@ public class EnemyMovement : MonoBehaviour
                 break;
         }
 
-        if (movementType != MovementType.Static)
+        if (activePattern != MovementType.Static)
         {
             Vector3 finalDir = (toPlayer + offset).normalized;
             transform.position += moveSpeed * finalDir * Time.deltaTime;
@@ -76,7 +129,7 @@ public class EnemyMovement : MonoBehaviour
         if (player != null)
         {
             Vector3 direction = player.position - transform.position;
-            //direction.y = 0f;
+           
             Quaternion lookRotation = Quaternion.LookRotation(direction);
             transform.rotation = lookRotation * Quaternion.Euler(0f, 180f, 0f); // flip if model faces wrong way
         }
@@ -85,14 +138,9 @@ public class EnemyMovement : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, player.position) > contactDistance) return;
         hasDealtDamage = true;
-        //if (deathFVX != null)
-        //{
-        //    GameObject clone = Instantiate(deathFVX, transform.position, Quaternion.identity);
-        //    Destroy(clone, 2f);
-        //}
-
+       
         PlayerHealth.Instance.TakeDamage(damageAmount);
-        WaveSpawnController.Instance?.NotifyEnemyDeath(gameObject);
+        WaveSpawnController.Instance.NotifyEnemyDeath(gameObject);
 
         EnemyPool.Instance.Return(gameObject);
 

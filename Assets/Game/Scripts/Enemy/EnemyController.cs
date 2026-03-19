@@ -29,14 +29,14 @@ public class EnemyController : MonoBehaviour
         movement.Initialize(
             enemyData.movementType,
             enemyData.moveSpeed , 
-            enemyData.damageToPlayer
+            enemyData.damageToPlayer,
+            enemyData.accelerate
         );
 
        
         health.Initialize(
             enemyData.maxHealth,
-         
-           enemyData.ScoreValue
+            enemyData.ScoreValue
         );
     }
 }

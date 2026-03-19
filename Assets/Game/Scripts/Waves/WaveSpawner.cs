@@ -21,7 +21,7 @@ public class WaveSpawner : MonoBehaviour
 
     public void PrepareQueue(WaveData wave)
     {
-        Debug.Log($"[WaveSpawner] PrepareQueue: {wave.waveName} | Enemies: {wave.enemies.Length}");
+        //Debug.Log($"[WaveSpawner] PrepareQueue: {wave.waveName} | Enemies: {wave.enemies.Length}");
         EnemyPool.Instance.BuildWaveQueue(wave.enemies);
         EnemyPool.Instance.LogPoolState();
     }
@@ -29,7 +29,7 @@ public class WaveSpawner : MonoBehaviour
     // Callback now passes back the spawned GameObject
     public IEnumerator SpawnWave(WaveData wave, System.Action<GameObject> onEnemySpawned)
     {
-        Debug.Log($"[WaveSpawner] SpawnWave: {wave.waveName} | Enemies: {wave.enemies.Length}");
+        //Debug.Log($"[WaveSpawner] SpawnWave: {wave.waveName} | Enemies: {wave.enemies.Length}");
 
         int index = 0;
         while (EnemyPool.Instance.QueueCount > 0)
@@ -38,7 +38,7 @@ public class WaveSpawner : MonoBehaviour
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             MeshRenderer meshRend = spawnPoint.GetComponent<MeshRenderer>();
 
-            Debug.Log($"[WaveSpawner] Spawning {index}/{wave.enemies.Length} at {spawnPoint.name}");
+            //Debug.Log($"[WaveSpawner] Spawning {index}/{wave.enemies.Length} at {spawnPoint.name}");
 
             if (meshRend != null)
             {
@@ -62,7 +62,7 @@ public class WaveSpawner : MonoBehaviour
             yield return new WaitForSeconds(wave.spawnInterval);
         }
 
-        Debug.Log($"[WaveSpawner] All enemies spawned: {wave.waveName}");
+        //Debug.Log($"[WaveSpawner] All enemies spawned: {wave.waveName}");
     }
 
     private IEnumerator GlowEffect(MeshRenderer rend)

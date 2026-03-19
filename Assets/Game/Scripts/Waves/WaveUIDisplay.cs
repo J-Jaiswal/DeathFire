@@ -6,6 +6,9 @@ public class WaveUIDisplay : MonoBehaviour
     [Header("HUD Text")]
     [SerializeField] private TextMeshProUGUI waveLabel;
     [SerializeField] private TextMeshProUGUI statusLabel;
+    [SerializeField] private GameObject deathPanel;
+    [SerializeField] private GameObject victoryPanel;
+
     private Coroutine statusRoutine;
 
     private void OnEnable()
@@ -24,32 +27,46 @@ public class WaveUIDisplay : MonoBehaviour
         WaveEventBus.OnGameOver -= HandleGameOver;
         WaveEventBus.OnCountdownTick -= HandleCountdown;
     }
-    private void Start() => ClearAll();
+
+      
+    private void Awake() => ClearAll();
 
     private void HandleWaveStarted(int n)
     {
-        SetWaveLabel($"Wave {n}", Color.yellow);
+
+        if ( n == 11 )
+            SetWaveLabel("Final Wave!", Color.yellow);  
+        else
+            SetWaveLabel($"Wave {n}", Color.yellow);
+        
     }
     private void HandleWaveCleared(int n)
     {
         SetWaveLabel($"Wave {n}", Color.white);
         ShowStatus("Cleared!", Color.green, 2f);
+
     }
+  
     private void HandleVictory()
     {
         SetWaveLabel("Victory!", Color.cyan);
+        StopAllCoroutines();
+        victoryPanel?.gameObject.SetActive(true);
+
         ShowStatus("All waves cleared!", Color.cyan);
     }
-    private void HandleGameOver(string reason)
+    private void HandleGameOver()
     {
         SetWaveLabel("Game Over", Color.red);
-        string msg = string.IsNullOrEmpty(reason) ? "Better luck next time" : reason;
-        ShowStatus(msg, Color.red);
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        deathPanel?.gameObject.SetActive(true);
+        ShowStatus("you Die", Color.red);
     }
     private void HandleCountdown(int seconds, int waveNumber)
     {
         SetWaveLabel($"Wave {waveNumber}", Color.white);
-        ShowStatus(seconds > 0 ? $"{seconds}" : "", Color.white);
+        //ShowStatus(seconds > 0 ? $"{seconds}" : "", Color.white);
     }
 
     private void SetWaveLabel(string msg, Color color)
@@ -79,6 +96,8 @@ public class WaveUIDisplay : MonoBehaviour
 
     public void ClearAll()
     {
+        deathPanel?.gameObject.SetActive(false);
+        victoryPanel?.gameObject.SetActive(false);
         waveLabel?.gameObject.SetActive(false);
         if (statusRoutine != null) { StopCoroutine(statusRoutine); statusRoutine = null; }
         statusLabel?.gameObject.SetActive(false);

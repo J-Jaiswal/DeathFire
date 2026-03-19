@@ -35,7 +35,7 @@ public class SFXManager : MonoBehaviour
     //[SerializeField] private AudioClip wave1IntroClip;         // wave 1 special sting
     //[SerializeField] private AudioClip nextWaveCountdownClip;  // "next wave in X" audio
     [SerializeField] private AudioClip gameCompletionClip;     // all waves cleared music
-
+    [SerializeField] private AudioClip firstWaveCount;
     // ── Enemy SFX ─────────────────────────────────────────────────────────────
 
     [Header("Enemy SFX")]
@@ -94,12 +94,12 @@ public class SFXManager : MonoBehaviour
     public void PlayGunshot() => weaponSource.PlayOneShot(gunshotClip);
     public void PlayReload() {
 
-        weaponSource.PlayOneShot(manScreamReloadClip);
+        //weaponSource.PlayOneShot(manScreamReloadClip);
         weaponSource.PlayOneShot(reloadStartClip); }
     public void PlayEmptyGunFire() => weaponSource.PlayOneShot(emptyGunFire);
     public void PlayHoister() => weaponSource.PlayOneShot(hoisterClip);
     public void PlayHeadshot() => weaponSource.PlayOneShot(headshotClip);
-    //public void PlayRunOver() => weaponSource.PlayOneShot(runOverClip);
+
 
     // ── Player ────────────────────────────────────────────────────────────────
 
@@ -113,6 +113,7 @@ public class SFXManager : MonoBehaviour
     public void PlayWaveClear() => waveSource.PlayOneShot(waveClearClip);
     public void PlayCountdownTick() => waveSource.PlayOneShot(countdownTickClip);
     //public void PlayWave1Intro() => waveSource.PlayOneShot(wave1IntroClip);
+    public void FirstWaveCountdown() => waveSource.PlayOneShot(firstWaveCount);
     //public void PlayNextWaveCountdown() => waveSource.PlayOneShot(nextWaveCountdownClip);
 
     public void PlayGameCompletion()

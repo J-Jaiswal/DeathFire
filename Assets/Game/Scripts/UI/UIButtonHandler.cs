@@ -12,7 +12,10 @@ public class UIButtonHandler : MonoBehaviour
     public void PlayGame() { PlayClick(); SceneLoader.Instance.LoadScene(gameScene); }
     public void LoadAbout() { PlayClick(); SceneManager.LoadScene(aboutScene); }
     public void LoadMainMenu() { PlayClick(); SceneManager.LoadScene(mainMenuScene); }
-    public void Restart() { PlayClick(); SceneLoader.Instance.RestartScene(); }
+    public void Restart() { PlayClick();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(gameScene);
+    }
 
     public void LoadScene(string sceneName)
     {

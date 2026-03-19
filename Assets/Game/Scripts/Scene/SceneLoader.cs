@@ -36,11 +36,12 @@ public class SceneLoader : MonoBehaviour
 
     public void LoadScene(string sceneName) => StartCoroutine(LoadAsync(sceneName));
 
-    public void RestartScene()
-    {
-        Time.timeScale = 1f;
-        StartCoroutine(LoadAsync(SceneManager.GetActiveScene().name));
-    }
+    //public void RestartScene()
+    //{
+    //    Time.timeScale = 1f;
+    //    SceneManager.LoadScene(SceneManager.GetActiveScene().name); 
+        
+    //}
 
     IEnumerator LoadAsync(string sceneName)
     {

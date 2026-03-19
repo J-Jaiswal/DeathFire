@@ -13,7 +13,7 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private Slider healthBar;
     [SerializeField] private RawImage healthBarFill;
     [SerializeField] private Gradient healthGradient;
-    [SerializeField] private GameObject deathPanel;
+    //[SerializeField] private GameObject deathPanel;
     [Header("Death Image Pulse on Hit")]
     [SerializeField] private Image deathImage;
     [SerializeField] private float hitPulseMaxAlpha = 0.5f;
@@ -29,7 +29,7 @@ private Coroutine hitPulseCoroutine;
 
     private int currentHealth;
     private bool isDead;
-    private Coroutine flashCoroutine;
+    //private Coroutine flashCoroutine;
 
     private void Awake()
     {
@@ -82,10 +82,10 @@ private Coroutine hitPulseCoroutine;
         if (isDead) return;
         currentHealth = Mathf.Max(0, currentHealth - amount);
         RefreshUI();
-        //TriggerDamageFlash();
+       
         TriggerDeathImagePulse();
+        if (currentHealth <= 0) { isDead = true; OnDeath();  return; }
         SFXManager.Instance.PlayPlayerHurt();
-        if (currentHealth <= 0) { isDead = true; OnDeath(); }
     }
 
     private void TriggerDeathImagePulse()
@@ -121,6 +121,11 @@ private Coroutine hitPulseCoroutine;
         deathImage.color = new Color(c.r, c.g, c.b, 0f);
     }
 
+    //public void DeathPanel(bool active)
+    //{
+    //            if (deathPanel != null) deathPanel.SetActive(active);
+    //}   
+
     private void OnDeath()
     {
 
@@ -128,9 +133,15 @@ private Coroutine hitPulseCoroutine;
         int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.TotalScore : 0;
 
         WaveStatsTracker.Instance.CommitRunResults(finalScore, waveReached);
+      
+        WaveManager.Instance.TriggerGameOver("Player Died");
         SFXManager.Instance.PlayPlayerDeath();
-        if (deathPanel != null) deathPanel.SetActive(true);
+        //DeathPanel(true);
+        WaveEventBus.RaiseGameOver();
+       
         Time.timeScale = 0f;
+        Cursor.visible = true; 
+        Cursor.lockState = CursorLockMode.None; 
         Debug.Log("Player died!");
     }
 }

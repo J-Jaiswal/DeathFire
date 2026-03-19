@@ -31,11 +31,14 @@ public class ScoreManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        TotalScore = 0; 
+        TotalScore = 0;
+        scoreText.text = "00"; 
     }
 
     private void Update()
     {
+
+        if (!WaveSpawnController.Instance.WaveInProgress) return;
         passiveTimer += Time.deltaTime;
         if (passiveTimer >= passiveScoreInterval)
         {

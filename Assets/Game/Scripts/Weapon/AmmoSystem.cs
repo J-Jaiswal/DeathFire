@@ -11,11 +11,11 @@ public class AmmoSystem : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private int magazineSize = 12;
     [SerializeField] private int totalReserveAmmo = 24;
-    [SerializeField] private float reloadTime = 2f;
+    [SerializeField] private float reloadTime = 2.5f;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI ammoText;
-    [SerializeField] private TextMeshProUGUI reloadingText;
+    //[SerializeField] private TextMeshProUGUI reloadingText;
     [SerializeField] private TextMeshProUGUI ammoRefillNoticeText; // optional — shows "+X Ammo" on refill
 
 
@@ -38,7 +38,7 @@ public class AmmoSystem : MonoBehaviour
         currentAmmo = magazineSize;
         reserveAmmo = totalReserveAmmo;
 
-        if (reloadingText != null) reloadingText.gameObject.SetActive(false);
+        //if (reloadingText != null) reloadingText.gameObject.SetActive(false);
         if (ammoRefillNoticeText != null) ammoRefillNoticeText.gameObject.SetActive(false);
 
         RefreshUI();
@@ -100,7 +100,7 @@ public class AmmoSystem : MonoBehaviour
     //  Reloading
     // ─────────────────────────────────────────────
 
-   public bool NeedsReload() => !isReloading && currentAmmo < magazineSize && reserveAmmo > 0;
+   public bool CanReload() => !isReloading && currentAmmo < magazineSize && reserveAmmo > 0;
 
     public void StartReload(Action onComplete = null)
     {
@@ -114,7 +114,7 @@ public class AmmoSystem : MonoBehaviour
     private IEnumerator ReloadRoutine(Action onComplete)
     {
         isReloading = true;
-        if (reloadingText != null) reloadingText.gameObject.SetActive(true);
+        //if (reloadingText != null) reloadingText.gameObject.SetActive(true);
 
         yield return new WaitForSeconds(reloadTime);
 
@@ -125,7 +125,7 @@ public class AmmoSystem : MonoBehaviour
         reserveAmmo -= bulletsToLoad;
         isReloading = false;
 
-        if (reloadingText != null) reloadingText.gameObject.SetActive(false);
+        //if (reloadingText != null) reloadingText.gameObject.SetActive(false); 
 
         RefreshUI();
         onComplete?.Invoke();

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 [RequireComponent(typeof(WaveSpawner))]
 public class WaveSpawnController : MonoBehaviour
 {
-    public static WaveSpawnController Instance { get; private set; }
 
     private WaveSpawner waveSpawner;
 
@@ -17,6 +16,7 @@ public class WaveSpawnController : MonoBehaviour
 
     // Track registered enemies to prevent orphan death calls
     private readonly HashSet<GameObject> registeredEnemies = new HashSet<GameObject>();
+    public static WaveSpawnController Instance { get; private set; }
 
     // ── Lifecycle ────────────────────────────────────────────────
 
@@ -43,16 +43,13 @@ public class WaveSpawnController : MonoBehaviour
         yield return StartCoroutine(waveSpawner.SpawnWave(wave, OnEnemySpawned));
 
         isSpawning = false;
-        Debug.Log($"[WaveSpawnController] Spawning done | Alive: {enemiesAlive} | Spawned: {enemiesSpawned}");
+        //Debug.Log($"[WaveSpawnController] Spawning done | Alive: {enemiesAlive} | Spawned: {enemiesSpawned}");
         CheckCompletion();
 
         yield return new WaitUntil(() => !WaveInProgress);
     }
 
-    /// <summary>
-    /// Called by Enemy scripts when they die.
-    /// Pass the enemy's GameObject so orphan calls are ignored.
-    /// </summary>
+
     public void NotifyEnemyDeath(GameObject enemy)
     {
         // Ignore deaths from enemies not registered in this wave

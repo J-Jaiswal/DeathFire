@@ -12,6 +12,8 @@ public class UISoundManager : MonoBehaviour
     [Header("Button SFX")]
     [SerializeField] private AudioClip buttonClickClip;
     [SerializeField] private AudioClip buttonHoverClip;
+ 
+
 
     [Header("Background Music")]
     [SerializeField] private AudioClip menuMusicClip;
@@ -24,16 +26,17 @@ public class UISoundManager : MonoBehaviour
         //DontDestroyOnLoad(gameObject);
     }
 
-    private void Start()
-    {
-        PlayMenuMusic();
-    }
+    //private void Start()
+    //{
+    //    PlayMenuMusic();
+    //}
 
     // ── Buttons ───────────────────────────────────────────────────────────────
 
     public void PlayButtonClick() => uiSource.PlayOneShot(buttonClickClip);
     public void PlayButtonHover() => uiSource.PlayOneShot(buttonHoverClip);
 
+ 
     // ── Music ─────────────────────────────────────────────────────────────────
 
     public void PlayMenuMusic()

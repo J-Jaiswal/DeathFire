@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using TMPro;
 
 public class WeaponAnimationDriver : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class WeaponAnimationDriver : MonoBehaviour
     [Header("Spawning")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform muzzlePoint;
+    [SerializeField] private TextMeshProUGUI reloadingText;
+
 
     [Header("References")]
     [SerializeField] private AmmoSystem ammoSystem; // drag in via Inspector
@@ -24,18 +27,22 @@ public class WeaponAnimationDriver : MonoBehaviour
     private int layerOverlay;
     private int layerActions;
     bool waveIsActive;
+    private float reloadtimer;
+    
   
 
     private void Awake()
     {
         layerOverlay = animator.GetLayerIndex("Layer Overlay");
         layerActions = animator.GetLayerIndex("Layer Actions");
+        if (reloadingText != null) reloadingText.gameObject.SetActive(false);
 
         WaveStatsTracker waveStatsTracker = WaveStatsTracker.Instance;
     }
 
     private void Update()
     {
+        if ( !WaveManager.Instance.PlayerAlive) return;
         if (Input.GetMouseButtonDown(0))
             TryFire();
 
@@ -57,19 +64,29 @@ public class WeaponAnimationDriver : MonoBehaviour
         if (Time.time < nextFireTime) return;
         if (!waveIsActive) return;
 
-        // Ask AmmoSystem for permission — it decrements and handles auto-reload trigger
-        if (!ammoSystem.TryShoot())
-        {
-            // Out of ammo: trigger reload automatically
-            TryReload();
-            return;
-        }
+        //// Ask AmmoSystem for permission — it decrements and handles auto-reload trigger
+        //if (!ammoSystem.TryShoot())
+        //{
+        //    // Out of ammo: trigger reload automatically
+        //    TryReload();
+        //    return;
+        //}
         //WaveStatsTracker.Instance.RegisterShot(false);
         nextFireTime = Time.time + (1f / fireRate);
         //WaveStatsTracker.Instance?.RegisterShot(hit: didHit);
-        SFXManager.Instance.PlayGunshot();
+
+        if(ammoSystem.IsEmpty)
+        {
+            SFXManager.Instance.PlayEmptyGunFire();
+            animator.CrossFade("Fire Empty", 0.03f, layerOverlay, 0f);
+
+            return;
+        }
+        
         animator.CrossFade("Fire", 0.03f, layerOverlay, 0f);
+        SFXManager.Instance.PlayGunshot();
         WaveStatsTracker.Instance.RegisterFired();
+        ammoSystem.TryShoot();
         SpawnBullet();
         PlayMuzzleFlash();
     }
@@ -80,13 +97,15 @@ public class WeaponAnimationDriver : MonoBehaviour
     {
         // AmmoSystem decides if reload is actually needed
         if (isReloading || isInspecting) return;
-        if (!ammoSystem.NeedsReload()) return;
+        if (!ammoSystem.CanReload()) return;
+        if (!waveIsActive) return;  
         isReloading = true;
         SFXManager.Instance.PlayReload();
 
         // Pick animation: full mag or empty mag
         string animName = ammoSystem.IsEmpty ? "Reload Empty" : "Reload";
         animator.Play(animName, layerActions, 0f);
+        StartCoroutine(ReloadingTimer(2.0f));
 
 
         // Tell AmmoSystem reload started — it shows the UI progress bar
@@ -116,7 +135,25 @@ public class WeaponAnimationDriver : MonoBehaviour
     }
 
     // ── Gameplay Hooks ────────────────────────────────────────────────────────
+    
+    private IEnumerator ReloadingTimer(float duration)
+    {
+        float elapsed = 0f;
+        reloadingText.gameObject.SetActive(true);
 
+        while (elapsed < duration)
+        {
+            reloadtimer = duration - elapsed;
+            reloadingText.text = $"R ({reloadtimer:F1})";
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        reloadtimer = 0f;
+        reloadingText.text = $"R (0.0)";
+        yield return new WaitForSeconds(0.15f);
+        reloadingText.gameObject.SetActive(false);
+    }
     private void SpawnBullet()
     {
         if (bulletPrefab != null && muzzlePoint != null)
