@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Tank
   movementType: 0
-  maxHealth: 200
-  moveSpeed: 1
   ScoreValue: 400
+  maxHealth: 200
   damageToPlayer: 30
+  accelerate: 0.1
+  moveSpeed: 1

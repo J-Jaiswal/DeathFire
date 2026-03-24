@@ -3,27 +3,20 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
-public class WavePauseController : MonoBehaviour
+public class WaveButtonController : MonoBehaviour
 {
-    [Header("Buttons")]
-    [SerializeField] private Button pauseButton;
-    [SerializeField] private TextMeshProUGUI pauseButtonLabel;
-    [SerializeField] private Button mainMenuButton;
-    [SerializeField] private Button quitButton;
-
+   
     [Header("Settings")]
+    [SerializeField] private TextMeshProUGUI pauseButtonLabel;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     public bool IsPaused { get; private set; }
 
-    private void Start()
-    {
-        pauseButton?.onClick.AddListener(Toggle);
-        mainMenuButton?.onClick.AddListener(GoToMainMenu);
-        quitButton?.onClick.AddListener(Quit);
+   
+    public void Toggle() { 
+        UISoundManager.Instance.PlayButtonClick();
+        if (IsPaused) Resume(); else Pause();
     }
-
-    public void Toggle() { if (IsPaused) Resume(); else Pause(); }
 
     public void Pause()
     {
@@ -41,19 +34,27 @@ public class WavePauseController : MonoBehaviour
         Debug.Log("[WavePauseController] Resumed");
     }
 
-    private void GoToMainMenu()
+    public void GoToMainMenu()
     {
         Time.timeScale = 1f;
+        UISoundManager.Instance.PlayButtonClick();
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    private void Quit()
+    public void ButtonHover()
     {
+        UISoundManager.Instance.PlayButtonHover();
+    }
+
+    public  void QuitGame()
+    {
+        UISoundManager.Instance.PlayButtonClick();
+
         Time.timeScale = 1f;
-#if UNITY_EDITOR
+     #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-#else
+     #else
         Application.Quit();
-#endif
+     #endif
     }
 }

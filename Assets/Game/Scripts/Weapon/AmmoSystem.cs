@@ -1,26 +1,23 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+﻿using System;
 using System.Collections;
-using System;
+using TMPro;
+using UnityEngine;
+
 
 public class AmmoSystem : MonoBehaviour
 {
     public static AmmoSystem Instance { get; private set; }
 
     [Header("Settings")]
-    [SerializeField] private int magazineSize = 12;
-    [SerializeField] private int totalReserveAmmo = 36;
-    [SerializeField] private float reloadTime = 2f;
+    private readonly int magazineSize = 12;
+    private readonly int totalReserveAmmo = 12;
+    [SerializeField] private float reloadTime = 2.5f;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI ammoText;
-    [SerializeField] private TextMeshProUGUI reloadingText;
+
     [SerializeField] private TextMeshProUGUI ammoRefillNoticeText; // optional — shows "+X Ammo" on refill
 
-    [Header("Death / No Ammo Panel")]
-    [Tooltip("Panel shown when both magazine AND reserve are empty.")]
-    [SerializeField] private GameObject noAmmoDeathPanel;
 
     public bool IsEmpty => currentAmmo == 0;
     public bool IsReloading => isReloading;
@@ -38,24 +35,10 @@ public class AmmoSystem : MonoBehaviour
 
     private void Start()
     {
-        currentAmmo = magazineSize;
-        reserveAmmo = totalReserveAmmo;
-
-        if (reloadingText != null) reloadingText.gameObject.SetActive(false);
-        if (noAmmoDeathPanel != null) noAmmoDeathPanel.SetActive(false);
-        if (ammoRefillNoticeText != null) ammoRefillNoticeText.gameObject.SetActive(false);
-
         RefreshUI();
     }
 
-    // ─────────────────────────────────────────────
-    //  Wave Ammo Refill — call this at wave start
-    // ─────────────────────────────────────────────
-
-    /// <summary>
-    /// Call this at the start of each wave, passing the incoming WaveData.
-    /// Handles both full refill and partial refill transparently.
-    /// </summary>
+    
     public void ApplyWaveAmmoRefill(WaveData wave)
     {
         if (wave == null) return;
@@ -73,24 +56,27 @@ public class AmmoSystem : MonoBehaviour
             if (totalAdded > 0)
                 ShowRefillNotice($"+{totalAdded} AMMO");
 
-            Debug.Log($"[AmmoSystem] Full ammo refill applied for wave: {wave.waveName}");
+            //Debug.Log($"[AmmoSystem] Full ammo refill applied for wave: {wave.waveName}");
         }
         else if (wave.ammoRefillAmount > 0)
         {
-            // Add to reserve only — player keeps their current magazine mid-wave transition
-            int before = reserveAmmo;
-            reserveAmmo = Mathf.Min(reserveAmmo + wave.ammoRefillAmount, totalReserveAmmo);
-            int actualAdded = reserveAmmo - before;
+            int totalPool = currentAmmo + reserveAmmo + wave.ammoRefillAmount;
+
+            int previousTotal = currentAmmo + reserveAmmo;
+            int actualAdded = totalPool - previousTotal; // = wave.ammoRefillAmount (for notice clarity)
+
+            currentAmmo = Mathf.Min(totalPool, magazineSize);
+            reserveAmmo = totalPool - currentAmmo;
 
             if (actualAdded > 0)
                 ShowRefillNotice($"+{actualAdded} AMMO");
 
-            Debug.Log($"[AmmoSystem] Partial ammo refill +{actualAdded} applied for wave: {wave.waveName}");
+            Debug.Log($"[AmmoSystem] Wave refill: pool={totalPool} | " +
+                      $"Magazine: {currentAmmo}/{magazineSize} | Reserve: {reserveAmmo} | " +
+                      $"Wave: {wave.waveName}");
         }
-        // If both flags are false / zero — no ammo given this wave (intentional scarcity)
 
         RefreshUI();
-        CheckDeathPanel(); // re-evaluate in case they were on 0 before the wave
     }
 
     // ─────────────────────────────────────────────
@@ -104,8 +90,6 @@ public class AmmoSystem : MonoBehaviour
         currentAmmo--;
         RefreshUI();
 
-        if (currentAmmo == 0 && reserveAmmo == 0)
-            TriggerNoAmmoDeath();
 
         return true;
     }
@@ -114,8 +98,7 @@ public class AmmoSystem : MonoBehaviour
     //  Reloading
     // ─────────────────────────────────────────────
 
-    /// <summary>Returns true if a reload is valid — mag not full AND reserve has ammo.</summary>
-    public bool NeedsReload() => !isReloading && currentAmmo < magazineSize && reserveAmmo > 0;
+   public bool CanReload() => !isReloading && currentAmmo < magazineSize && reserveAmmo > 0;
 
     public void StartReload(Action onComplete = null)
     {
@@ -129,7 +112,7 @@ public class AmmoSystem : MonoBehaviour
     private IEnumerator ReloadRoutine(Action onComplete)
     {
         isReloading = true;
-        if (reloadingText != null) reloadingText.gameObject.SetActive(true);
+        //if (reloadingText != null) reloadingText.gameObject.SetActive(true);
 
         yield return new WaitForSeconds(reloadTime);
 
@@ -140,36 +123,10 @@ public class AmmoSystem : MonoBehaviour
         reserveAmmo -= bulletsToLoad;
         isReloading = false;
 
-        if (reloadingText != null) reloadingText.gameObject.SetActive(false);
+        //if (reloadingText != null) reloadingText.gameObject.SetActive(false); 
 
         RefreshUI();
         onComplete?.Invoke();
-    }
-
-    // ─────────────────────────────────────────────
-    //  Death Panel
-    // ─────────────────────────────────────────────
-
-    private void TriggerNoAmmoDeath()
-    {
-        if (noAmmoDeathPanel != null)
-            noAmmoDeathPanel.SetActive(true);
-
-        Time.timeScale = 0f;
-        Debug.Log("[AmmoSystem] No ammo remaining — death panel activated.");
-    }
-
-    /// <summary>Hides death panel if ammo is available again (e.g. after wave refill).</summary>
-    private void CheckDeathPanel()
-    {
-        if (noAmmoDeathPanel == null) return;
-
-        bool hasAmmo = currentAmmo > 0 || reserveAmmo > 0;
-        if (hasAmmo && noAmmoDeathPanel.activeSelf)
-        {
-            noAmmoDeathPanel.SetActive(false);
-            Time.timeScale = 1f;
-        }
     }
 
     // ─────────────────────────────────────────────

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Waver
   movementType: 1
-  maxHealth: 100
-  moveSpeed: 2
   ScoreValue: 200
+  maxHealth: 100
   damageToPlayer: 20
+  accelerate: 0.15
+  moveSpeed: 2

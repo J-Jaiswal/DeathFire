@@ -7,16 +7,18 @@ public class WaveManager : MonoBehaviour
 {
     [Header("Wave Settings")]
     [SerializeField] private List<WaveData> waves;
-    [SerializeField] private float delayBeforeFirstWave = 5f;
+    [SerializeField] private float delayBeforeFirstWave = 4f;
     [SerializeField] private float delayBetweenWaves = 5f;
 
     [Header("References")]
     [SerializeField] private WaveBetweenPanel betweenPanel;
-
+    [Header("Countdown Animation")]
+    [SerializeField] private CountdownAnimation countdownAnimator;
     public static WaveManager Instance { get; private set; }
 
-    private int currentWaveIndex = 0;
+    private int currentWaveIndex = 0 ;
     private WaveSpawnController spawnController;
+    public bool PlayerAlive { get; private set; }
 
     public int CurrentWaveNumber => currentWaveIndex + 1;
     public bool HasNextWave => currentWaveIndex + 1 < waves.Count;
@@ -28,6 +30,7 @@ public class WaveManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         spawnController = GetComponent<WaveSpawnController>();
+        PlayerAlive = true;
     }
 
     private void OnEnable()
@@ -66,13 +69,18 @@ public class WaveManager : MonoBehaviour
     public void OnWaveComplete()
     {
         WaveEventBus.RaiseWaveCleared(CurrentWaveNumber);
+       
         StartCoroutine(BetweenWaveSequence());
+
+        AimBehaviour.instance.ResetAimToCenter();
     }
 
-    public void TriggerGameOver(string reason = "")
+    public void TriggerGameOver(string reason )
     {
         StopAllCoroutines();
-        WaveEventBus.RaiseGameOver(reason);
+        WaveEventBus.RaiseGameOver();
+        PlayerAlive = false;
+      
         Debug.Log($"[WaveManager] Game Over: {reason}");
     }
 
@@ -92,15 +100,18 @@ public class WaveManager : MonoBehaviour
         if (delay > 0f)
         {
             if (isFirstWave)
-                yield return StartCoroutine(CountdownSimple(delay, CurrentWaveNumber, wave));
+                yield return StartCoroutine(CountdownFirstWave(delay, CurrentWaveNumber, wave));
             else
                 yield return StartCoroutine(CountdownWithQueueBuild(delay, CurrentWaveNumber, wave));
         }
 
+        // Start BG music only after first wave countdown completes
+        if (isFirstWave)
+            UISoundManager.Instance?.PlayMenuMusic();
+
         WaveEventBus.RaiseWaveStarted(CurrentWaveNumber);
         yield return StartCoroutine(spawnController.RunWave(wave));
     }
-
     private IEnumerator BetweenWaveSequence()
     {
         yield return new WaitForSeconds(2f);
@@ -118,7 +129,7 @@ public class WaveManager : MonoBehaviour
         WaveData nextWave = waves[currentWaveIndex];
 
         // Tell trackers about the upcoming wave
-        NextWaveInfoTracker.Instance?.SetNextWave(nextWave);
+        NextWaveInfoTracker.Instance.SetNextWave(nextWave);
 
         EnemyPool.Instance.BuildWaveQueue(nextWave.enemies);
         EnemyPool.Instance.LogPoolState();
@@ -131,10 +142,24 @@ public class WaveManager : MonoBehaviour
 
     // ── Countdowns ───────────────────────────────────────────────
 
-    private IEnumerator CountdownSimple(float seconds, int waveNumber, WaveData wave)
+    private IEnumerator CountdownFirstWave(float seconds, int waveNumber, WaveData wave)
     {
         spawnController.PrepareQueue(wave);
-        yield return StartCoroutine(TickCountdown(seconds, waveNumber));
+
+        
+
+        int remaining = Mathf.CeilToInt(seconds);
+
+        yield return null; // fix skiping 3 number display
+        WaveEventBus.RaiseCountdownTick(remaining, waveNumber);
+
+        SFXManager.Instance.FirstWaveCountdown();
+
+        yield return new WaitForSeconds(1f);
+        remaining--;
+
+
+        yield return StartCoroutine(TickCountdown(remaining, waveNumber));
     }
 
     private IEnumerator CountdownWithQueueBuild(float seconds, int waveNumber, WaveData wave)
@@ -152,9 +177,8 @@ public class WaveManager : MonoBehaviour
         yield return StartCoroutine(TickCountdown(remaining, waveNumber));
     }
 
-    private IEnumerator TickCountdown(float seconds, int waveNumber)
+    private IEnumerator TickCountdown(int remaining, int waveNumber)
     {
-        int remaining = Mathf.CeilToInt(seconds);
         while (remaining > 0)
         {
             WaveEventBus.RaiseCountdownTick(remaining, waveNumber);
@@ -162,7 +186,7 @@ public class WaveManager : MonoBehaviour
             remaining--;
         }
 
-        WaveEventBus.RaiseCountdownTick(0, waveNumber); // triggers "Get Ready!"
+        WaveEventBus.RaiseCountdownTick(0, waveNumber);
         yield return new WaitForSeconds(0.6f);
     }
 }

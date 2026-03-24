@@ -1,3 +1,5 @@
+// Depricated 
+
 using UnityEngine;
 using System.Collections;   
 

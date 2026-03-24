@@ -28,7 +28,18 @@ public class WaveStatsTracker : MonoBehaviour
     }
 
     // ── Public API ───────────────────────────────────────────────
+    /// <summary>Call once when the run ends (game over / victory).</summary>
+    public void CommitRunResults(int finalScore , int waveReached)
+    {
 
+        GameResultsData.Score = finalScore;
+        GameResultsData.waveReached = waveReached;
+
+        GameResultsData.Kills = TotalKills;
+        GameResultsData.Headshots = TotalHeadshots;
+        GameResultsData.ShotsFired = TotalShotsFired;
+        GameResultsData.ShotsHit = TotalShotsHit;
+    }
     /// <summary>Call at the start of each wave to reset per-wave counters.</summary>
     public void ResetForNewWave()
     {
@@ -39,36 +50,30 @@ public class WaveStatsTracker : MonoBehaviour
     }
 
     /// <summary>Call from Enemy death handler.</summary>
-    public void RegisterKill(bool isHeadshot)
+    public void RegisterKill()
     {
         Kills++;
         TotalKills++;
-        if (isHeadshot)
-        {
-            Headshots++;
-            TotalHeadshots++;
-        }
+       
+    }
 
-        Debug.Log($"[WaveStatsTracker] Kill registered | Headshot: {isHeadshot} | " +
-                  $"Wave kills: {Kills} | Total: {TotalKills}");
+    public void RegisterHeadShot()
+    {
+        Headshots++;
+        TotalHeadshots++;
     }
 
     /// <summary>Call from weapon fire handler.</summary>
-    public void RegisterShot(bool hit)
+    public void RegisterFired()
     {
         ShotsFired++;
         TotalShotsFired++;
-        if (hit)
-        {
-            ShotsHit++;
-            TotalShotsHit++;
-        }
+     
     }
 
-    public void LogSummary()
+    public void RegisterHit()
     {
-        Debug.Log($"[WaveStatsTracker] Wave Summary | " +
-                  $"Kills: {Kills} | Headshots: {Headshots} | " +
-                  $"Accuracy: {Accuracy:F1}% ({ShotsHit}/{ShotsFired})");
+        ShotsHit++;
+        TotalShotsHit++;
     }
 }

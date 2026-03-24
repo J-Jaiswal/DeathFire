@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// Depricated
+
+using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {

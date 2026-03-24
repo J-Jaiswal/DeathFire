@@ -13,16 +13,15 @@ MonoBehaviour:
   m_Name: Wave2
   m_EditorClassIdentifier: Assembly-CSharp::WaveData
   waveName: Speed Test
+  enemyDetails: '4 basic , 3 Strikers '
   enemies:
+  - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
+  - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
-  - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
   - {fileID: 4982518431175953929, guid: 896d91454ad07d447b692e36f632bb84, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  spawnInterval: 3
-  fullAmmoRefil: 1
-  ammoRefilAmount: 12
-  healthDrop: 1
-  healthDropChance: 10
+  spawnInterval: 4
+  fullAmmoRefill: 0
+  ammoRefillAmount: 30
