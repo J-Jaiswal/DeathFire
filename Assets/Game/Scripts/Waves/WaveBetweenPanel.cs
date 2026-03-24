@@ -109,9 +109,9 @@ public class WaveBetweenPanel : MonoBehaviour
                 $"Total Enemies\n<size=110%><color=#FFD700>{info.TotalEnemies}</color></size>";
 
         string ammoLine = info.FullAmmoRefill
-                ? " Ammo\n<size=110%><color=#FFD700>FULL REFILL</color></size>"
+                ? "Ammo\n<size=110%><color=#FFD700>FULL REFILL</color></size>"
                 : info.AmmoRefillAmount > 0
-                    ? $"<color=#FFD700>⬡</color> Ammo\n<size=110%><color=#FFD700>+{info.AmmoRefillAmount}</color></size>"
+                    ? $"<color=#FFD700>⬡</color>Ammo\n<size=110%><color=#FFD700>+{info.AmmoRefillAmount}</color></size>"
                     : "<color=#555555>⬡</color> Ammo\n<size=110%><color=#FFD700>None</color></size>";
 
         nextWaveammo.text = $"{ammoLine}\n"; 

@@ -14,6 +14,7 @@ public class WeaponAnimationDriver : MonoBehaviour
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform muzzlePoint;
     [SerializeField] private TextMeshProUGUI reloadingText;
+    [SerializeField] private ParticleSystem muzzle;
 
 
     [Header("References")]
@@ -22,7 +23,6 @@ public class WeaponAnimationDriver : MonoBehaviour
     private float nextFireTime;
     private bool isReloading;
     private bool isInspecting;
-    private bool isHolstered;
 
     private int layerOverlay;
     private int layerActions;
@@ -43,14 +43,14 @@ public class WeaponAnimationDriver : MonoBehaviour
     private void Update()
     {
         if ( !WaveManager.Instance.PlayerAlive) return;
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.F))
             TryFire();
 
         if (Input.GetKeyDown(KeyCode.R))
             TryReload();
 
         if (Input.GetKeyDown(KeyCode.T))
-            StartCoroutine (StartInspect());
+            StartCoroutine(StartInspect());
     }
 
     // ── Firing ────────────────────────────────────────────────────────────────
@@ -59,21 +59,13 @@ public class WeaponAnimationDriver : MonoBehaviour
     {
         waveIsActive = WaveSpawnController.Instance.WaveInProgress;
 
-        if (isReloading || isInspecting || isHolstered) return;
+        if (isReloading || isInspecting ) return;
 
         if (Time.time < nextFireTime) return;
         if (!waveIsActive) return;
 
-        //// Ask AmmoSystem for permission — it decrements and handles auto-reload trigger
-        //if (!ammoSystem.TryShoot())
-        //{
-        //    // Out of ammo: trigger reload automatically
-        //    TryReload();
-        //    return;
-        //}
-        //WaveStatsTracker.Instance.RegisterShot(false);
+        
         nextFireTime = Time.time + (1f / fireRate);
-        //WaveStatsTracker.Instance?.RegisterShot(hit: didHit);
 
         if(ammoSystem.IsEmpty)
         {
@@ -105,7 +97,7 @@ public class WeaponAnimationDriver : MonoBehaviour
         // Pick animation: full mag or empty mag
         string animName = ammoSystem.IsEmpty ? "Reload Empty" : "Reload";
         animator.Play(animName, layerActions, 0f);
-        StartCoroutine(ReloadingTimer(2.0f));
+        StartCoroutine(ReloadingTimer(2.5f));
 
 
         // Tell AmmoSystem reload started — it shows the UI progress bar
@@ -124,13 +116,13 @@ public class WeaponAnimationDriver : MonoBehaviour
 
     public IEnumerator StartInspect()
     {
-        if (isReloading || isInspecting || isHolstered || !waveIsActive)
+        if (isReloading || isInspecting || !waveIsActive)
             
         yield break;
         isInspecting = true;
         SFXManager.Instance.PlayHoister();
         animator.Play("Inspect", layerActions, 0f);
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(4.8f);
         isInspecting = false;   
     }
 
@@ -162,6 +154,6 @@ public class WeaponAnimationDriver : MonoBehaviour
 
     private void PlayMuzzleFlash()
     {
-        // ParticleSystem.Play() here
+        muzzle.Play();
     }
 }

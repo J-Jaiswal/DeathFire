@@ -13,15 +13,14 @@ MonoBehaviour:
   m_Name: Wave5
   m_EditorClassIdentifier: Assembly-CSharp::WaveData
   waveName: Heavy Impact
+  enemyDetails: 3 Basic, 3 Tank
   enemies:
   - {fileID: 4082574744215486990, guid: df9e1671e3e605743bf5750041563300, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
   - {fileID: 4082574744215486990, guid: df9e1671e3e605743bf5750041563300, type: 3}
   - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  - {fileID: 875549251288421111, guid: 1005f50a7b18c394999a1ce566cb14e0, type: 3}
-  spawnInterval: 3
-  fullAmmoRefil: 1
-  ammoRefilAmount: 12
-  healthDrop: 1
-  healthDropChance: 50
+  - {fileID: 4082574744215486990, guid: df9e1671e3e605743bf5750041563300, type: 3}
+  spawnInterval: 4
+  fullAmmoRefill: 0
+  ammoRefillAmount: 30

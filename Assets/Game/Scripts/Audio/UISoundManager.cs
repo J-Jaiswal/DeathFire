@@ -26,10 +26,6 @@ public class UISoundManager : MonoBehaviour
         //DontDestroyOnLoad(gameObject);
     }
 
-    //private void Start()
-    //{
-    //    PlayMenuMusic();
-    //}
 
     // ── Buttons ───────────────────────────────────────────────────────────────
 

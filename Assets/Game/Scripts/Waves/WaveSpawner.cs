@@ -8,9 +8,9 @@ public class WaveSpawner : MonoBehaviour
 
     [Header("Glow Effect")]
     [SerializeField] private Color glowColor = Color.blue;
-    [SerializeField] private float glowIntensity = 4f;
+     private readonly float glowIntensity = 10f;
     [SerializeField] private float pulseSpeed = 2f;
-    [SerializeField] private float glowDuration = 0.3f;
+     private readonly float glowDuration = 1.8f;
 
     private MaterialPropertyBlock mpb;
 
@@ -43,8 +43,9 @@ public class WaveSpawner : MonoBehaviour
             if (meshRend != null)
             {
                 meshRend.enabled = true;
+               
                 yield return StartCoroutine(GlowEffect(meshRend));
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0.3f);
             }
 
             // Capture the spawned enemy
@@ -52,7 +53,7 @@ public class WaveSpawner : MonoBehaviour
 
             if (meshRend != null)
             {
-                yield return new WaitForSeconds(0.3f);
+                yield return new WaitForSeconds(1f);
                 meshRend.enabled = false;
             }
 

@@ -21,15 +21,8 @@ public class SceneLoader : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+   
     }
 
     public void OnSceneReady() => sceneReady = true;

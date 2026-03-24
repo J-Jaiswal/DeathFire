@@ -52,5 +52,5 @@ public class UIButtonHandler : MonoBehaviour
     // ─── UI Sound ─────────────────────────────────────────────────
 
     public void ButtonHover() => UISoundManager.Instance?.PlayButtonHover();
-    void PlayClick() => UISoundManager.Instance?.PlayButtonClick();
+    public void PlayClick() => UISoundManager.Instance?.PlayButtonClick();
 }

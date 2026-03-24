@@ -5,9 +5,9 @@ public class ScoreManager : MonoBehaviour
     public static ScoreManager Instance { get; private set; }
 
     [Header("Score Values")]
-    [SerializeField] private int waveCompletedBonus = 500;
-    [SerializeField] private int passiveScorePerTick = 10;
-    [SerializeField] private float passiveScoreInterval = 2f;
+    private int waveCompletedBonus = 500;
+    private int passiveScorePerTick = 5;
+    private float passiveScoreInterval = 1f;
 
     [Header("Combo Settings")]
     [SerializeField] private float comboWindow = 2f;

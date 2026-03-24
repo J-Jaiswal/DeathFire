@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Orbiter
   movementType: 2
-  maxHealth: 120
-  moveSpeed: 1.5
   ScoreValue: 250
+  maxHealth: 120
   damageToPlayer: 25
+  accelerate: 0.15
+  moveSpeed: 2

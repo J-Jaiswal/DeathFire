@@ -1,21 +1,21 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+﻿using System;
 using System.Collections;
-using System;
+using TMPro;
+using UnityEngine;
+
 
 public class AmmoSystem : MonoBehaviour
 {
     public static AmmoSystem Instance { get; private set; }
 
     [Header("Settings")]
-    [SerializeField] private int magazineSize = 12;
-    [SerializeField] private int totalReserveAmmo = 24;
+    private readonly int magazineSize = 12;
+    private readonly int totalReserveAmmo = 12;
     [SerializeField] private float reloadTime = 2.5f;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI ammoText;
-    //[SerializeField] private TextMeshProUGUI reloadingText;
+
     [SerializeField] private TextMeshProUGUI ammoRefillNoticeText; // optional — shows "+X Ammo" on refill
 
 
@@ -35,12 +35,6 @@ public class AmmoSystem : MonoBehaviour
 
     private void Start()
     {
-        currentAmmo = magazineSize;
-        reserveAmmo = totalReserveAmmo;
-
-        //if (reloadingText != null) reloadingText.gameObject.SetActive(false);
-        if (ammoRefillNoticeText != null) ammoRefillNoticeText.gameObject.SetActive(false);
-
         RefreshUI();
     }
 
@@ -62,21 +56,25 @@ public class AmmoSystem : MonoBehaviour
             if (totalAdded > 0)
                 ShowRefillNotice($"+{totalAdded} AMMO");
 
-            Debug.Log($"[AmmoSystem] Full ammo refill applied for wave: {wave.waveName}");
+            //Debug.Log($"[AmmoSystem] Full ammo refill applied for wave: {wave.waveName}");
         }
         else if (wave.ammoRefillAmount > 0)
         {
-            // Add to reserve only — player keeps their current magazine mid-wave transition
-            int before = reserveAmmo;
-            reserveAmmo = Mathf.Min(reserveAmmo + wave.ammoRefillAmount, totalReserveAmmo);
-            int actualAdded = reserveAmmo - before;
+            int totalPool = currentAmmo + reserveAmmo + wave.ammoRefillAmount;
+
+            int previousTotal = currentAmmo + reserveAmmo;
+            int actualAdded = totalPool - previousTotal; // = wave.ammoRefillAmount (for notice clarity)
+
+            currentAmmo = Mathf.Min(totalPool, magazineSize);
+            reserveAmmo = totalPool - currentAmmo;
 
             if (actualAdded > 0)
                 ShowRefillNotice($"+{actualAdded} AMMO");
 
-            Debug.Log($"[AmmoSystem] Partial ammo refill +{actualAdded} applied for wave: {wave.waveName}");
+            Debug.Log($"[AmmoSystem] Wave refill: pool={totalPool} | " +
+                      $"Magazine: {currentAmmo}/{magazineSize} | Reserve: {reserveAmmo} | " +
+                      $"Wave: {wave.waveName}");
         }
-        // If both flags are false / zero — no ammo given this wave (intentional scarcity)
 
         RefreshUI();
     }

@@ -71,6 +71,8 @@ public class WaveManager : MonoBehaviour
         WaveEventBus.RaiseWaveCleared(CurrentWaveNumber);
        
         StartCoroutine(BetweenWaveSequence());
+
+        AimBehaviour.instance.ResetAimToCenter();
     }
 
     public void TriggerGameOver(string reason )

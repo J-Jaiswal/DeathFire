@@ -18,8 +18,10 @@ public class AimBehaviour : MonoBehaviour
     private float mouseX;
     private float mouseY;
 
+    public static AimBehaviour instance { get; private set; } 
     void Awake()
     {
+        instance = this;
         if (!mainCamera)
             mainCamera = Camera.main;
     }
@@ -34,15 +36,23 @@ public class AimBehaviour : MonoBehaviour
 
     void Update()
     {
+        if (!WaveSpawnController.Instance.WaveInProgress) return;
         HandleMouseInput();
         UpdateAimPosition();
-        //RotateGun(); // enable only if needed
+        
     }
 
     void HandleMouseInput()
     {
-        mouseX += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
-        mouseY += Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
+        float mouseXInput = Input.GetAxis("Mouse X");
+        if (mouseXInput == 0)
+            mouseXInput = Input.GetAxis("Horizontal");
+
+        float mouseYInput = Input.GetAxis("Mouse Y");
+        if (mouseYInput == 0)
+            mouseYInput = Input.GetAxis("Vertical");
+        mouseX += mouseXInput * sensitivity * Time.deltaTime;
+        mouseY += mouseYInput* sensitivity * Time.deltaTime;
 
         mouseX = Mathf.Clamp(mouseX, clampX.x, clampX.y);
         mouseY = Mathf.Clamp(mouseY, clampY.x, clampY.y);
@@ -55,20 +65,13 @@ public class AimBehaviour : MonoBehaviour
         aim.position = mainCamera.transform.TransformPoint(localAimOffset);
     }
 
-    void ResetAimToCenter()
+    public void ResetAimToCenter()
     {
         mouseX = 0f;
         mouseY = 0f;
 
         Vector3 centerOffset = new Vector3(0f, 0f, planeDistance);
         aim.position = mainCamera.transform.TransformPoint(centerOffset);
-    }
-
-
-    void RotateGun()
-    {
-        if (!muzzle || !aim) return;
-        muzzle.forward = GetDirection();
     }
 
     public Vector3 GetDirection()

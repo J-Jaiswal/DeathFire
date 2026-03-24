@@ -43,17 +43,19 @@ public class WaveUIDisplay : MonoBehaviour
     private void HandleWaveCleared(int n)
     {
         SetWaveLabel($"Wave {n}", Color.white);
-        ShowStatus("Cleared!", Color.green, 2f);
+        ShowStatus("CLEARED", Color.green, 2f);
 
     }
   
     private void HandleVictory()
     {
         SetWaveLabel("Victory!", Color.cyan);
+        ShowStatus("All waves cleared!", Color.cyan);
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         StopAllCoroutines();
         victoryPanel?.gameObject.SetActive(true);
 
-        ShowStatus("All waves cleared!", Color.cyan);
     }
     private void HandleGameOver()
     {
