@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -18,7 +18,7 @@ public class WaveSpawnController : MonoBehaviour
     private readonly HashSet<GameObject> registeredEnemies = new HashSet<GameObject>();
     public static WaveSpawnController Instance { get; private set; }
 
-    // ── Lifecycle ────────────────────────────────────────────────
+   
 
     private void Awake()
     {
@@ -27,7 +27,7 @@ public class WaveSpawnController : MonoBehaviour
         waveSpawner = GetComponent<WaveSpawner>();
     }
 
-    // ── Public API ───────────────────────────────────────────────
+    // Public API ------------------->
 
     public void PrepareQueue(WaveData wave) => waveSpawner.PrepareQueue(wave);
 
@@ -46,7 +46,61 @@ public class WaveSpawnController : MonoBehaviour
         //Debug.Log($"[WaveSpawnController] Spawning done | Alive: {enemiesAlive} | Spawned: {enemiesSpawned}");
         CheckCompletion();
 
+        // Safety watchdog: if all registered enemies are gone but wave never completed
+        // (e.g. enemy returned to pool without calling NotifyEnemyDeath), force-complete.
+        StartCoroutine(WatchdogCheck());
+
         yield return new WaitUntil(() => !WaveInProgress);
+    }
+
+    /// <summary>Force-completes the wave — call this as a last resort (e.g. dev console).</summary>
+    public void ForceComplete()
+    {
+        if (!WaveInProgress) return;
+        Debug.LogWarning("[WaveSpawnController] ForceComplete called — forcing wave completion.");
+        registeredEnemies.Clear();
+        enemiesAlive = 0;
+        isSpawning = false;
+        CheckCompletion();
+    }
+
+    private IEnumerator WatchdogCheck()
+    {
+        // Wait a short grace period so legitimate deaths can resolve first.
+        yield return new WaitForSeconds(2f);
+
+        while (WaveInProgress && !completionNotified)
+        {
+            // If every registered enemy has been returned to pool (not active)
+            // the HashSet will be empty and alive count should be 0.
+            bool allGone = registeredEnemies.Count == 0 && enemiesAlive <= 0 && !isSpawning && enemiesSpawned > 0;
+            if (allGone)
+            {
+                Debug.LogWarning("[WaveSpawnController] Watchdog: wave stuck — forcing completion.");
+                ForceComplete();
+                yield break;
+            }
+
+            // Remove any enemies that have been deactivated (returned to pool) without proper notification.
+            var toRemove = new System.Collections.Generic.List<GameObject>();
+            foreach (var e in registeredEnemies)
+            {
+                if (e == null || !e.activeInHierarchy)
+                    toRemove.Add(e);
+            }
+            if (toRemove.Count > 0)
+            {
+                Debug.LogWarning($"[WaveSpawnController] Watchdog: found {toRemove.Count} silent-dead enemy(ies) — cleaning up.");
+                foreach (var e in toRemove)
+                {
+                    registeredEnemies.Remove(e);
+                    enemiesAlive = Mathf.Max(0, enemiesAlive - 1);
+                }
+                CheckCompletion();
+            }
+
+            yield return new WaitForSeconds(1f);
+        }
     }
 
 
@@ -64,7 +118,7 @@ public class WaveSpawnController : MonoBehaviour
         CheckCompletion();
     }
 
-    // ── Internal ─────────────────────────────────────────────────
+    // Internal ------------->
 
     // Called by WaveSpawner after GetNext — receives the spawned GameObject
     private void OnEnemySpawned(GameObject enemy)

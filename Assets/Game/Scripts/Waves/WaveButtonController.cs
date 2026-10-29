@@ -5,15 +5,28 @@ using UnityEngine.SceneManagement;
 
 public class WaveButtonController : MonoBehaviour
 {
-   
     [Header("Settings")]
     [SerializeField] private TextMeshProUGUI pauseButtonLabel;
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    [Header("Escape Key")]
+    [Tooltip("If true, pressing Escape during a wave loads the main menu.")]
+    [SerializeField] private bool escapeLoadsMenu = true;
+
     public bool IsPaused { get; private set; }
 
-   
-    public void Toggle() { 
+    //  Unity ------------->
+
+    private void Update()
+    {
+        if (!escapeLoadsMenu) return;
+        if (Input.GetKeyDown(KeyCode.Escape))
+            GoToMainMenu();
+    }
+
+    //  Panel Buttons -------------->
+
+    public void Toggle() {
         UISoundManager.Instance.PlayButtonClick();
         if (IsPaused) Resume(); else Pause();
     }
@@ -37,24 +50,43 @@ public class WaveButtonController : MonoBehaviour
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
-        UISoundManager.Instance.PlayButtonClick();
-        SceneManager.LoadScene(mainMenuSceneName);
+        UISoundManager.Instance?.PlayButtonClick();
+
+        // Restore cursor so the main menu is fully interactive.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        // Use SceneLoader for a proper loading-screen transition if available.
+        if (SceneLoader.Instance != null)
+            SceneLoader.Instance.LoadScene(mainMenuSceneName);
+        else
+            SceneManager.LoadScene(mainMenuSceneName);
     }
 
     public void ButtonHover()
     {
-        UISoundManager.Instance.PlayButtonHover();
+        UISoundManager.Instance?.PlayButtonHover();
     }
 
-    public  void QuitGame()
+ 
+    public void QuitGame()
     {
-        UISoundManager.Instance.PlayButtonClick();
-
+        UISoundManager.Instance?.PlayButtonClick();
         Time.timeScale = 1f;
-     #if UNITY_EDITOR
+
+#if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-     #else
+
+#elif UNITY_WEBGL
+        // Application.Quit() does nothing in WebGL builds.
+        // Show a native browser confirm-dialog; if the user confirms, close the tab.
+        Application.ExternalEval(
+            "if(confirm('Leave the game?')){window.close();" +
+            // window.close() only works when the tab was opened by script;
+            // as a fallback navigate to a "thanks for playing" page.
+            "if(!window.closed){window.location.href='about:blank';}}");
+#else
         Application.Quit();
-     #endif
+#endif
     }
 }

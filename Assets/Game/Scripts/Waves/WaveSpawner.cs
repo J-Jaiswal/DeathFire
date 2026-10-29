@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class WaveSpawner : MonoBehaviour
@@ -51,14 +51,17 @@ public class WaveSpawner : MonoBehaviour
             // Capture the spawned enemy
             GameObject spawnedEnemy = EnemyPool.Instance.GetNext(spawnPoint.position, Quaternion.identity);
 
+            // Register IMMEDIATELY so any death during the post-spawn glow delay is counted.
+            // Previously this was invoked after a 1-second wait, causing a race:
+            // if the enemy died in that window, NotifyEnemyDeath was ignored and
+            // enemiesAlive never reached 0, so the next-wave panel never appeared.
+            onEnemySpawned?.Invoke(spawnedEnemy);
+
             if (meshRend != null)
             {
                 yield return new WaitForSeconds(1f);
                 meshRend.enabled = false;
             }
-
-            // Notify AFTER glow delay — enemy is fully active and visible
-            onEnemySpawned?.Invoke(spawnedEnemy);
 
             yield return new WaitForSeconds(wave.spawnInterval);
         }
