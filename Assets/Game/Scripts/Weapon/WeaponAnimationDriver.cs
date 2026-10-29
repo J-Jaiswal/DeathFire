@@ -59,7 +59,7 @@ public class WeaponAnimationDriver : MonoBehaviour
         // Find the player character's animator for fire‑empty handling.
         if (characterAnimator == null)
         {
-            var characterBehaviour = FindObjectOfType<CharacterBehaviour>();
+            var characterBehaviour = FindFirstObjectByType<CharacterBehaviour>();
             if (characterBehaviour != null)
                 characterAnimator = characterBehaviour.GetComponent<Animator>();
         }
